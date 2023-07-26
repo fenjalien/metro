@@ -1,6 +1,6 @@
 [package]
 name = "units"
-version = "0.0.1"
-entrypoint = "units.typ"
+version = "0.1.0"
+entrypoint = "lib.typ"
 authors = ["fenjalien <https://github.com/fenjalien>"]
 description = "Unit typsetting."
