@@ -26,9 +26,30 @@
 #let quetta = $Q$
 
 #let _dict = (
+  quecto: quecto,
+  ronto: ronto,
+  yocto: yocto,
+  zepto: zepto,
+  atto: atto,
+  femto: femto,
+  pico: pico,
+  nano: nano,
+  micro: micro,
   milli: milli,
   centi: centi,
+  deci: deci,
+  deca: deca,
+  deka: deka,
   kilo: kilo,
+  mega: mega,
+  giga: giga,
+  tera: tera,
+  peta: peta,
+  exa: exa,
+  zetta: zetta,
+  yotta: yotta,
+  ronna: ronna,
+  quetta: quetta
 )
 
 

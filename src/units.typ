@@ -40,7 +40,7 @@
 #let bel = $B$
 #let dalton = $D a$
 #let day = $d$
-#let decibel = $d B$
+#let decibel = $d#bel$
 #let electronvolt = $e V$
 #let hectare = $h a$
 #let hour = $h$
@@ -88,9 +88,14 @@
   radian: rad,
   joule: joule,
   mole: mole,
-  kelivn: sym.kelvin,
+  kelvin: sym.kelvin,
   becquerel: becquerel,
-  candela: candela
+  candela: candela,
+  pascal: pascal,
+  hour: hour,
+  bel: bel,
+  hertz: hertz,
+  Hz: Hz
 )
 
 
