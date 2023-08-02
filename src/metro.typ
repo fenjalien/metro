@@ -2,21 +2,28 @@
 #import "prefixes.typ"
 
 #let _state = state("metro-setup", (
-  frac-mode: "symbol",
-  qualifier-mode: "subscript",
-  times: sym.dot,
   units: units._dict,
   prefixes: prefixes._dict,
 
+
+  // quantites
+  times: sym.dot,
+
   // Unit outupt options
-  bracket-unit-denominator: true,
+  // both
   inter-unit-product: sym.space.thin,
-  per-mode: "power",
   per-symbol: h(0pt) + sym.slash + h(0pt),
+  // literal
+  frac-mode: "symbol",
+  // interpreted
+  bracket-unit-denominator: true,
+  per-mode: "power",
   power-half-as-sqrt: false,
   qualifier-mode: "subscript",
   qualifier-phrase: "",
-  sticky-per: false
+  sticky-per: false,
+
+  interpreted-delimeter: "#",
 ))
 
 #let _update-dict(new, old) = {
@@ -67,12 +74,12 @@
       let base = process(fields.remove("base"))
       math.attach(base, ..fields)
     } else if func in "lr" {
-      // An lr's body is just a sequence so we don't have to recall it
       process(value.body)
     } else if func == "frac" {
       let (num, denom) = (value.num, value.denom).map(process)
       if frac-mode == "symbol" {
-        num + options.per-symbol + if options.bracket-unit-denominator { $(denom)$ } else { denom }
+        // let brackets = options.bracket-unit-denominator and repr(denom.func()) == "sequence"
+        num + options.per-symbol + denom// + if options.bracket-unit-denominator { $(denom)$ } else { denom }
       } else {
         math.frac(num, denom)
       }
@@ -83,6 +90,12 @@
       value
     }
   }
+
+  // If math content is passed directly it'll be an equation which but we don't want to step into one.
+  if repr(units.func()) == "equation" {
+    units = units.body
+  }
+
   return math.upright(process(units))
 }
 
@@ -102,7 +115,7 @@
   // The prefix to apply to the next unit
   let prefix = none
 
-  for u in input.split("#") {
+  for u in input.split(options.interpreted-delimeter) {
     // Can safely ignore empty strings as they appear at the start of the input.
     // Could also be due to double # but eh.
     if u == "" {
@@ -149,7 +162,7 @@
       prefix = none
     } else if u in prefixes {
       // Set the current prefix
-      prefix = prefixes.at(u)
+      prefix = prefixes.at(u).symbol
     } else if u in before-powers or u.starts-with("raiseto") {
       // modify the current power for the next unit
 
@@ -214,6 +227,12 @@
       let of = u.slice(3, -1)
 
       let last = result.last()
+      let frac = if type(last) == "array" {
+        last = result.last().last().last()
+        true
+      } else {
+        false
+      }
 
       if options.qualifier-mode in ("bracket", "combine", "phrase") {
         if options.qualifier-mode == "bracket" {
@@ -223,12 +242,12 @@
         }
         if repr(last.func()) == "attach" {
           let fields = last.fields()
-          result.last() = math.attach(
+          last = math.attach(
             fields.remove("base") + of,
             ..fields
           )
         } else {
-          result.last() += of
+          last += of
         }
       } else if options.qualifier-mode == "subscript" {
         let fields = (:)
@@ -239,12 +258,18 @@
         }
         fields.b = of
 
-        result.last() = math.attach(
+        last = math.attach(
           fields.remove("base"), 
           ..fields
         )
       } else {
         panic("Unknown qualifier-mode: " + options.qualifier-mode)
+      }
+
+      if frac {
+        result.last().last().last() = last
+      } else {
+        result.last() = last
       }
     } else {
       panic("unknown variable: " + u)
@@ -305,14 +330,23 @@
 })
 
 #let _num(number, e, pm, options) = {
-  let power = if e == none { none } else { $#s.times 10^#e$ }
-    if pm != none {
-      if type(pm) in ("float", "integer") { pm = $#str(pm)$ }
-      if type(number) in ("float", "integer") { number = $#str(number)$ }
-      number = "(" + number + sym.plus.minus + pm + ")"
+  assert(type(number) in ("float", "integer"))
+  number = str(number)
+  if pm != none {
+    if type(pm) in ("float", "integer") { 
+      pm = str(pm)
     }
+    number = "(" + number + sym.plus.minus + pm + ")"
+  }
 
-    $number#power$
+  number = number.replace("-", sym.minus)
+  $number$
+
+  if e == none {
+    none
+  } else {
+    $#s.times 10^#e$
+  }
 }
 
 #let num(number, e: none, pm: none, ..options) = _state.display(s => {
