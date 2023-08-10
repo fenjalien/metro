@@ -10,6 +10,11 @@
 #let NULL-after = [\u{FFFF} ]
 #let NULL-before = [ \u{FFFF}]
 
+
+#let tothe = (x) => math.attach(NULL-after, t: x)
+#let raiseto = (x) => math.attach(NULL-before, t: x)
+#let qualifier = (x) => math.attach(NULL-after, b: x)
+
 #let parse-math-units(input, options) = {
   let results = ()
 
@@ -75,7 +80,7 @@
             1
           }
         }
-      } else if (func == "text" or func == "equation") {
+      } else if func in ("text", "equation", "display") {
         res.body += cur
       } else if func == "lr" {
         stack.push(cur.body.children.slice(1, -1).join())
@@ -110,15 +115,12 @@
   if not options.sticky-per and per > 0 {
     panic("A per somewhere does not have a denominator")
   }
-          // panic(results)
 
   return results
 }
 
 #let parse-string-units(input, options) = {
 
-  let tothe = (x) => math.attach(NULL-after, t: x)
-  let raiseto = (x) => math.attach(NULL-before, t: x)
   return parse-math-units(
     eval(
       input.replace(regex("_(\w+)|(?:(?:_|of)\((.+?)\))"), (m) => {
@@ -130,14 +132,10 @@
         } + "\""
       }).replace("/", " per ").trim(), 
       mode: "math", 
-      scope: options.units + options.prefixes + (
+      scope: options.units + options.prefixes + options.powers + options.qualifiers + (
         per: math.class("binary", "per"),
         tothe: tothe,
-        squared: tothe([2]),
-        cubed: tothe([3]),
         raiseto: raiseto,
-        square: raiseto([2]),
-        cubic: raiseto([3]),
       )
     ),
     options
@@ -148,7 +146,7 @@
 #let display-units(input, options, top: false) = {
   let result = ()
   let stack = input.rev()
-  // panic(input)
+  let pers = ()
   while stack.len() > 0 {
     let cur = stack.pop()
     let res = cur.at("body", default: [])

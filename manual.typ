@@ -350,6 +350,8 @@ The separator between each unit. The default setting is a thin space: another co
 //   Note that the first macro does not actually need the delimeter.
 // ]
 
+#metro-reset()
+
 == Quantities
 
 = Meet the Units
@@ -358,7 +360,7 @@ The following tables show the currently supported prefixes, units and their abbr
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
-#if true {
+#if false {
 
 set figure(kind: "Table", supplement: "Table")
 
@@ -682,3 +684,104 @@ page(
   )
 )
 }
+
+= Creating 
+
+The following functions can be used to define cutom units, prefixes, powers and qualifiers that can be used with the `unit` function.
+
+== Units
+```typ
+#declare-unit(unit, symbol, ..options)
+```
+
+Declare's a custom unit to be used with the `unit` and `qty` functions.
+
+#param("unit", "string")[The string to use to identify the unit for string input.]
+#param("symbol", "li")[The unit's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
+
+#pad[
+  ```typ
+  #let inch = "in"
+  #declare-unit("inch", inch)
+  #unit("inch / s")\
+  #unit($inch / s$)
+  ```
+  #let inch = "in"
+  #declare-unit("inch", inch)
+  #unit("inch / s")\
+  #unit($inch / s$)
+]
+
+== Prefixes
+```typ
+#create-prefix(symbol)
+```
+Use this function to correctly create the symbol for a prefix. Metro uses Typst's #link("https://typst.app/docs/reference/math/class/", `math.class`) function with the `class` parameter `"unary"` to designate a prefix. This function does it for you.
+
+#param("symbol", "li")[The prefix's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
+
+```typ
+#declare-prefix(prefix, symbol, power-tens)
+```
+
+Declare's a custom prefix to be used with the `unit` and `qty` functions.
+
+#param("prefix", "string")[The string to use to identify the prefix for string input.]
+#param("symbol", "li")[The prefix's symbol. This should be the output of the `create-prefix` function specified above.]
+#param("power-tens", "nu")[The power ten of the prefix.]
+
+#pad[
+  ```typ
+  #let myria = create-prefix("my")
+  #declare-prefix("myria", myria, 4)
+  #unit("myria meter")\
+  #unit($myria meter$)
+  ```
+  #let myria = create-prefix("my")
+  #declare-prefix("myria", myria, 4)
+  #unit("myria meter")\
+  #unit($myria meter$)
+]
+
+== Powers
+```typ
+#declare-power(before, after, power)
+```
+
+This function adds two symbols for string input, one for use before a unit, the second for ues after a unit, obth of which are equivalent to the `power`. 
+
+#param("before", "string")[The string that specifies this power before a unit.]
+#param("after", "string")[The string that specifies this power after a unit.]
+#param("power", "nu")[The power.]
+
+#pad[
+  ```typ
+  #declare-power("quartic", "tothefourth", 4)
+  #unit("kilogram tothefourth")\
+  #unit("quartic metre")
+  ```
+  #declare-power("quartic", "tothefourth", 4)
+  #unit("kilogram tothefourth")\
+  #unit("quartic metre")
+]
+
+== Qualifiers
+```typ
+#declare-qualifier(qualifier, symbol)
+```
+
+This function defines a custom qualifier for string input.
+
+#param("qualifier", "string")[The string that specifies this qualifier.]
+#param("symbol", "li")[The qualifier's symbol. Can be string or content.]
+
+#pad[
+  ```typ
+  #declare-qualifier("polymer", "pol")
+  #declare-qualifier("catalyst", "cat")
+  #unit("gram polymer per mole catalyst per hour")
+  ```
+  #declare-qualifier("polymer", "pol")
+  #declare-qualifier("catalyst", "cat")
+  #unit("gram polymer per mole catalyst per hour")
+]
