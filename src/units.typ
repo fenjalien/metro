@@ -355,6 +355,7 @@
   sr: sr,
 
   tesla: tesla,
+  T: tesla,
 
   tonne: tonne,
 

@@ -25,65 +25,121 @@
 #let ronna = $R$
 #let quetta = $Q$
 
+#{
+  quecto = math.class("unary", quecto)
+  ronto = math.class("unary", ronto)
+  yocto = math.class("unary", yocto)
+  zepto = math.class("unary", zepto)
+  atto = math.class("unary", atto)
+  femto = math.class("unary", femto)
+  pico = math.class("unary", pico)
+  nano = math.class("unary", nano)
+  micro = math.class("unary", micro)
+  milli = math.class("unary", milli)
+  centi = math.class("unary", centi)
+  deci = math.class("unary", deci)
+  deca = math.class("unary", deca)
+  deka = math.class("unary", deka)
+  hecto = math.class("unary", hecto)
+  kilo = math.class("unary", kilo)
+  mega = math.class("unary", mega)
+  giga = math.class("unary", giga)
+  tera = math.class("unary", tera)
+  peta = math.class("unary", peta)
+  exa = math.class("unary", exa)
+  zetta = math.class("unary", zetta)
+  yotta = math.class("unary", yotta)
+  ronna = math.class("unary", ronna)
+  quetta = math.class("unary", quetta)
+}
 #let _dict = (
-  quecto: (quecto, -30),
-  ronto: (ronto, -27),
-  yocto: (yocto, -24),
-  zepto: (zepto, -21),
-  atto: (atto, -18),
-  femto: (femto, -15),
-  pico: (pico, -12),
-  nano: (nano, -9),
-  micro: (micro, -6),
-  milli: (milli, -3),
-  centi: (centi, -2),
-  deci: (deci, -1),
-  deca: (deca, 1),
-  deka: (deka, 1),
-  hecto: (hecto, 2),
-  kilo: (kilo, 3),
-  mega: (mega, 6),
-  giga: (giga, 9),
-  tera: (tera, 12),
-  peta: (peta, 15),
-  exa: (exa, 18),
-  zetta: (zetta, 21),
-  yotta: (yotta, 24),
-  ronna: (ronna, 27),
-  quetta: (quetta, 30)
+  quecto: quecto,
+  ronto: ronto,
+  yocto: yocto,
+  zepto: zepto,
+  atto: atto,
+  femto: femto,
+  pico: pico,
+  nano: nano,
+  micro: micro,
+  milli: milli,
+  centi: centi,
+  deci: deci,
+  deca: deca,
+  deka: deka,
+  hecto: hecto,
+  kilo: kilo,
+  mega: mega,
+  giga: giga,
+  tera: tera,
+  peta: peta,
+  exa: exa,
+  zetta: zetta,
+  yotta: yotta,
+  ronna: ronna,
+  quetta: quetta
 )
-#{
-  for (k, v) in _dict {
-    _dict.insert(k, (symbol: v.first(), power: v.last()))
-  }
-}
+
+// #let _dict = (
+//   quecto: (quecto, -30),
+//   ronto: (ronto, -27),
+//   yocto: (yocto, -24),
+//   zepto: (zepto, -21),
+//   atto: (atto, -18),
+//   femto: (femto, -15),
+//   pico: (pico, -12),
+//   nano: (nano, -9),
+//   micro: (micro, -6),
+//   milli: (milli, -3),
+//   centi: (centi, -2),
+//   deci: (deci, -1),
+//   deca: (deca, 1),
+//   deka: (deka, 1),
+//   hecto: (hecto, 2),
+//   kilo: (kilo, 3),
+//   mega: (mega, 6),
+//   giga: (giga, 9),
+//   tera: (tera, 12),
+//   peta: (peta, 15),
+//   exa: (exa, 18),
+//   zetta: (zetta, 21),
+//   yotta: (yotta, 24),
+//   ronna: (ronna, 27),
+//   quetta: (quetta, 30)
+// )
+// #{
+//   for (k, v) in _dict {
+//     _dict.insert(k, (symbol: v.first(), power: v.last()))
+//   }
+// }
 
 
-#{
-  quecto += sym.zws
-  ronto += sym.zws
-  yocto += sym.zws
-  zepto += sym.zws
-  atto += sym.zws
-  femto += sym.zws
-  pico += sym.zws
-  nano += sym.zws
-  micro += sym.zws
-  milli += sym.zws
-  centi += sym.zws
-  deci += sym.zws
-  deca += sym.zws
-  deka = deca
-  hecto += sym.zws
-  kilo += sym.zws
-  // kilo = $k#sym.zws$
-  mega += sym.zws
-  giga += sym.zws
-  tera += sym.zws
-  peta += sym.zws
-  exa += sym.zws
-  zetta += sym.zws
-  yotta += sym.zws
-  ronna += sym.zws
-  quetta += sym.zws
-}
+// #{
+//   quecto += sym.zws
+//   ronto += sym.zws
+//   yocto += sym.zws
+//   zepto += sym.zws
+//   atto += sym.zws
+//   femto += sym.zws
+//   pico += sym.zws
+//   nano += sym.zws
+//   micro += sym.zws
+//   milli += sym.zws
+//   centi += sym.zws
+//   deci += sym.zws
+//   deca += sym.zws
+//   deka = deca
+//   hecto += sym.zws
+//   kilo += sym.zws
+//   // kilo = $k#sym.zws$
+//   mega += sym.zws
+//   giga += sym.zws
+//   tera += sym.zws
+//   peta += sym.zws
+//   exa += sym.zws
+//   zetta += sym.zws
+//   yotta += sym.zws
+//   ronna += sym.zws
+//   quetta += sym.zws
+// }
+

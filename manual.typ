@@ -1,4 +1,6 @@
 #import "src/lib.typ": *
+#import units: *
+#import prefixes: *
 
 #import "@preview/tablex:0.0.4": tablex, hlinex, vlinex
 
@@ -93,179 +95,177 @@ Formats a number.
 #unit(unit, ..options)
 ```
 
-Typsets a unit and provides full control over output format for the unit. This function can be used in two different ways. 
+Typsets a unit and provides full control over output format for the unit. The type passed to the function can be either a string or some math content.
 
-The first way is "literally" in math mode, where the math content is parsed and any non-prefixes are separated by the `inter-unit-product` (by default a thin space) option and fractions are modified depending on the `frac-mode` option. Units within the `unit` function can be specified in three ways: a single letter (`$unit(m)$`, $unit(m)$); a string (`$unit("mol"^2)$`, $unit("mol"^2)$); or by importing the units as variable definitions: #pad[
-  ```typ  
-  #import "@preview/metro:0.1.0": unit, kg, mol
-  #unit($kg m/s^2$)
-  $unit(g_"polymer" mol_"cat" s^(-1))$
+When using math Typst accepts single characters but multiple characters together are expected to be variables. So Metro defines units and prefixes which you can import to be use. #pad[
+  ```typ
+  #import "@preview/metro:0.1.0": unit, units, prefixes
+  #unit($units.kg m/s^2$)
+  // because `units` and `prefixes` here are modules you can import what you need
+  #import units: gram, metre, second
+  #import prefixes: kilo
+  $unit(kilo gram / metre second^2)$
+  // You can also just import everything instead
+  #import units: *
+  #import prefixes: *
+  $unit(joule / mole / kelvin)$
   ```
-  #unit($kg m/s^2$)\
-  $unit(g_"polymer" mol_"cat" s^(-1))$
+
+  #unit($units.kg m/s^2$)\
+  $unit(kilo gram metre / second^2)$\
+  $unit(joule / mole / kelvin)$
 ]
 
-The second way is an "intrepreted" system by passing the function a string delimited by the `interpreted-delimeter` option (default is "\#" to reflect Typst's equivalent of Latex's backslash).
+When using strings there is no need to import any units or prefixes as the string is parsed. Additionally several variables have been defined to allow the string to be more human readable. You can also use the same syntax as with math mode. #pad[
+  ```typ
+  // String
+  #unit("kilo gram metre per square second")\
+  // Math equivalent
+  #unit($kilo gram metre / second^2$)\
+  // String using math syntax
+  #unit("kilo gram metre / second^2")
+  ```
+  // String
+  #unit("kilo gram metre per square second")\
+  // Math equivalent
+  #unit($kilo gram metre / second^2$)\
+  // String using math syntax
+  #unit("kilo gram metre / second^2")
+]
+
+`per` used as in "metres _per_ second" is equivalent to a slash `/`. When using this in a string you don't need to specify a numerator.
 #pad[
   ```typ
-  #unit("#kilo#metre#cubed#second")\
-  #unit("#kilo#gram#metre#per#square#second")\
-  #unit("#gram#per#cubic#centi#metre")\
-  #unit("#square#volt#cubic#lumen#per#farad")\
-  #unit("#metre#squared#per#gray#cubic#lux")\
-  #unit("#henry#second")
+  #unit("metre per second")\
+  $unit(metre/second)$
+
+  #unit("per square becquerel")\
+  #unit("/becquerel^2")
   ```
-  #unit("#kilo#metre#cubed#second")\
-  #unit("#kilo#gram#metre#per#square#second")\
-  #unit("#gram#per#cubic#centi#metre")\
-  #unit("#square#volt#cubic#lumen#per#farad")\
-  #unit("#metre#squared#per#gray#cubic#lux")\
-  #unit("#henry#second")
+  #unit("metre per second")\
+  $unit(metre/second)$
+
+  #unit("per square becquerel")\
+  #unit("/becquerel^2")
 ]
-On its own, this is less convenient than the literal method. However, the package allows you to alter a variety of options.
 
-=== Using Interpreted Mode
-I'm not sure what to call these as in siunitx they are macros but here they are strings. But to not hurt my brain further trying to create a new name (apart from "thingymajigs") I'll call them macros for now.
-
-When writing in interpreted mode several macros have been defined.
-
-`#per` used as in "metres _per_ second".
+`square` and `cubic` apply their respective powers to the units after them, while `squared` and `cubed` apply to units before them. 
 #pad[
   ```typ
-  #unit("#metre#per#second")
+  #unit("square becquerel")\
+  #unit("joule squared per lumen")\
+  #unit("cubic lux volt tesla cubed")
   ```
-  #unit("#metre#per#second")
+  #unit("square becquerel")\
+  #unit("joule squared per lumen")\
+  #unit("cubic lux volt tesla cubed")
 ]
-
-`#square` and `#cubic` apply their respective powers to the units after them, while `#squared` and `#cubed` apply to units before them. 
+Generic powers can be inserted using the `tothe` and `raiseto` functions. `tothe` specifically is equivalent to using caret `^`.
 #pad[
   ```typ
-  #unit("#square#becquerel")\
-  #unit("#joule#squared#per#lumen")\
-  #unit("#cubic#lux#volt#tesla#cubed")
+  #unit("henry tothe(5)")\
+  #unit($henry^5$)\
+  #unit("henry^5")
+
+  #unit("raiseto(4.5) radian")\
+  #unit($radian^4.5$)\
+  #unit("radian^4.5")
   ```
-  #unit("#square#becquerel")\
-  #unit("#joule#squared#per#lumen")\
-  #unit("#cubic#lux#volt#tesla#cubed")
-]
-Generic powers can be inserted using the `#tothe` and `#raiseto` macros. These act as functions and whatever is wrapped in its parantheses are taken as its argument.
-#pad[
-  ```typ
-  #unit("#henry#tothe(5)")\
-  #unit("#raiseto(4.5)#radian")
-  ```
-  #unit("#henry#tothe(5)")\
-  #unit("#raiseto(4.5)#radian")
+  #unit("henry tothe(5)")\
+  #unit($henry^5$)\
+  #unit("henry^5")
+
+  #unit("raiseto(4.5) radian")\
+  #unit($radian^4.5$)\
+  #unit("radian^4.5")
 ]
 
-Generic qualifiers are available using the `#of` macro:
+Generic qualifiers are available using the `of` function which is equivalent to using an underscore `_`. Note that when using an underscore for qualifiers in a string with a space, to capture the whole qualifier use brackets `()`.
 #pad[
   ```typ
-  #unit("#kilogram#of(metal)")\
-  #unit("#milli#mole#of(cat)#per#kilogram#of(prod)", qualifier-mode: "bracket")
-  ```
-  #unit("#kilogram#of(metal)")\
-  #unit("#milli#mole#of(cat)#per#kilogram#of(prod)", qualifier-mode: "bracket")
-]
+  #unit("kilogram of(metal)")\
+  #unit($kilogram_"metal"$)\
+  #unit("kilogram_metal")
 
+  #metro-setup(qualifier-mode: "bracket")
+  #unit("milli mole of(cat) per kilogram of(prod)")\
+  #unit($milli mole_"cat" / kilogram_"prod"$)\
+  #unit("milli mole_(cat) / kilogram_(prod)")
+  ```
+  #unit("kilogram of(metal)")\
+  #unit($kilogram_"metal"$)\
+  #unit("kilogram_metal")
+
+  #metro-setup(qualifier-mode: "bracket")
+  #unit("milli mole of(cat) per kilogram of(prod)")\
+  #unit($milli mole_"cat" / kilogram_"prod"$)\
+  #unit("milli mole_(cat) / kilogram_(prod)")
+  #metro-setup(qualifier-mode: "subscript")
+]
 
 === Options
-The following options affect both literal and interpreted mode.
 
 #param("inter-unit-product", "li", default: "sym.space.thin", [
 The separator between each unit. The default setting is a thin space: another common choice is a centred dot.
 ```typ
-#unit("#farad#squared#lumen#candela")\
-#unit("#farad#squared#lumen#candela", inter-unit-product: $dot.c$)
+#unit("farad squared lumen candela")\
+#unit("farad squared lumen candela", inter-unit-product: $dot.c$)
 ```
-#unit("#farad#squared#lumen#candela")\
-#unit("#farad#squared#lumen#candela", inter-unit-product: $dot.c$)
+#unit("farad squared lumen candela")\
+#unit("farad squared lumen candela", inter-unit-product: $dot.c$)
 ])
 
-#param("per-symbol", "li", default: "h(0pt) + sym.slash + h(0pt)")[
-  The symbol to use to separate the two parts of a unit when `per-symbol` is `"symbol"`.
-  #pad[
-    ```typ
-    #unit("#joule#per#mole#per#kelvin", per-mode: "symbol", per-symbol: [ div ])
-    ```
-    #unit("#joule#per#mole#per#kelvin", per-mode: "symbol", per-symbol: [ div ])
-  ]
-]
-
-#line(length: 100%)
-
-The following option affects only literal mode.
-
-#param("frac-mode", "ch", default: "symbol")[
-  Use to alter the handling of a `math.frac` function. These are normally created in math mode by using a slash `/`.
-
-  / symbol: Separates the numerator and the denominator using the symbol in `per-symbol`.
-  #pad[
-    ```typ
-    $unit(joule / \(mole kelvin))$\
-    $unit(meter / second^2)$
-    ```
-    $unit(joule / \(mole kelvin))$\
-    $unit(meter / second^2)$
-  ]
-
-  / frac: This leaves the `math.frac` as it is.
-  #pad[
-    ```typ
-    #metro-setup(frac-mode: "frac")
-    $unit(joule / (mole kelvin))$\
-    $unit(meter / second^2)$
-    ```
-    #metro-setup(frac-mode: "frac")
-    $unit(joule / (mole kelvin))$\
-    $unit(meter / second^2)$
-  ]
-]
-
-#line(length: 100%)
-
-The following options affect only interpreted mode.
 
 #param("per-mode", "ch", default: "power", [
   Use to alter the handling of `per`. 
 
   / power: Reciprocal powers
   #pad[
-  ```typ
-  #unit("#joule#per#mole#per#kelvin")\
-  #unit("#metre#per#second#squared")
-  ```
-  #unit("#joule#per#mole#per#kelvin")\
-  #unit("#metre#per#second#squared")]
+    ```typ
+    #unit("joule per mole per kelvin")\
+    #unit("metre per second squared")
+    ```
+    #unit("joule per mole per kelvin")\
+    #unit("metre per second squared")
+  ]
 
   / fraction: Uses the `math.frac` function (also known as `$ / $`) to typeset positive and negative powers of a unit separately.
   #pad[```typ
-  #unit("#joule#per#mole#per#kelvin", per-mode: "fraction")\
-  #unit("#metre#per#second#squared", per-mode: "fraction")
+  #unit("joule per mole per kelvin", per-mode: "fraction")\
+  #unit("metre per second squared", per-mode: "fraction")
   ```
-  #unit("#joule#per#mole#per#kelvin", per-mode: "fraction")\
-  #unit("#metre#per#second#squared", per-mode: "fraction")]
+  #unit("joule per mole per kelvin", per-mode: "fraction")\
+  #unit("metre per second squared", per-mode: "fraction")]
 
   / symbol: Separates the two parts of a unit using the symbol in `per-symbol`. This method for displaying units can be ambiguous, and so brackets are added unless `bracket-unit-denominator` is set to `false`. Notice that `bracket-unit-denominator` only applies when `per-mode` is set to symbol.
   #pad[```typ
   #metro-setup(per-mode: "symbol")
-  #unit("#joule#per#mole#per#kelvin")\
-  #unit("#metre#per#second#squared")
+  #unit("joule per mole per kelvin")\
+  #unit("metre per second squared")
   ```
   #metro-setup(per-mode: "symbol")
-  #unit("#joule#per#mole#per#kelvin")\
-  #unit("#metre#per#second#squared")
+  #unit("joule per mole per kelvin")\
+  #unit("metre per second squared")
   ]
 ])
 
+#param("per-symbol", "li", default: "sym.slash")[
+  The symbol to use to separate the two parts of a unit when `per-symbol` is `"symbol"`.
+  #pad[
+    ```typ
+    #unit("joule per mole per kelvin", per-mode: "symbol", per-symbol: [ div ])
+    ```
+    #unit("joule per mole per kelvin", per-mode: "symbol", per-symbol: [ div ])
+  ]
+]
 
 #param("bracket-unit-denominator", "sw", default: "true")[
   Whether or not to add brackets to unit denominators when `per-symbol` is `"symbol"`.
   #pad[
     ```typ
-    #unit("#joule#per#mole#per#kelvin", per-mode: "symbol", bracket-unit-denominator: false)
+    #unit("joule per mole per kelvin", per-mode: "symbol", bracket-unit-denominator: false)
     ```
-    #unit("#joule#per#mole#per#kelvin", per-mode: "symbol", bracket-unit-denominator: false)
+    #unit("joule per mole per kelvin", per-mode: "symbol", bracket-unit-denominator: false)
   ]
 ]
 
@@ -275,11 +275,11 @@ The following options affect only interpreted mode.
   Normally, `per` applies only to the next unit given. When `sticky-per` is `true`, this behaviour is changed so that `per` applies to all subsequent units.
   #pad[
     ```typ
-    #unit("#pascal#per#gray#henry")\
-    #unit("#pascal#per#gray#henry", sticky-per: true)
+    #unit("pascal per gray henry")\
+    #unit("pascal per gray henry", sticky-per: true)
     ```
-    #unit("#pascal#per#gray#henry")\
-    #unit("#pascal#per#gray#henry", sticky-per: true)
+    #unit("pascal per gray henry")\
+    #unit("pascal per gray henry", sticky-per: true)
   ]
 ]
 
@@ -288,72 +288,74 @@ The following options affect only interpreted mode.
   / subscript:
   #pad[
     ```typ
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")
     ```
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")
   ]
 
   / bracket:
   #pad[
     ```typ
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour", qualifier-mode: "bracket")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour", qualifier-mode: "bracket")
     ```
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour", qualifier-mode: "bracket")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour", qualifier-mode: "bracket")
   ]
 
   / combine: Powers can lead to ambiguity and are automatically detected and brackets added as appropriate.
   #pad[
     ```typ
-    #unit("#deci#bel#of(i)", qualifier-mode: "combine")
+    #unit("deci bel of(i)", qualifier-mode: "combine")
     ```
-    #unit("#deci#bel#of(i)", qualifier-mode: "combine")
+    #unit("deci bel of(i)", qualifier-mode: "combine")
   ]
 
-  /phrase: Used with `qualifier-phrase`, which allows for example a space or othre linking text to be inserted.
+  / phrase: Used with `qualifier-phrase`, which allows for example a space or othre linking text to be inserted.
   #pad[
     ```typ
     #metro-setup(qualifier-mode: "phrase", qualifier-phrase: sym.space)
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")\
-    #metro-setup(qualifier-phrase: " of ")
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")\
+    #metro-setup(qualifier-phrase: [ of ])
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")
     ```
     #metro-setup(qualifier-mode: "phrase", qualifier-phrase: sym.space)
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")\
-    #metro-setup(qualifier-phrase: " of ")
-    #unit("#kilogram#of(pol)#squared#per#mole#of(cat)#per#hour")
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")\
+    #metro-setup(qualifier-phrase: [ of ])
+    #unit("kilogram of(pol) squared per mole of(cat) per hour")
   ]
+  
 ]
 
 #param("power-half-as-sqrt", "sw", default: "false")[
   When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root.
   #pad[
     ```typ
-    #unit("#Hz#tothe(0.5)")\
-    #unit("#Hz#tothe(0.5)", power-half-as-sqrt: true)
+    #unit("Hz tothe(0.5)")\
+    #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
     ```
-    #unit("#Hz#tothe(0.5)")\
-    #unit("#Hz#tothe(0.5)", power-half-as-sqrt: true)
+    #unit("Hz tothe(0.5)")\
+    #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
   ]
 ]
 
-#param("interpreted-delimeter", "string", default: "#")[
-  The delimeter to use to separate the macros in intepreted mode.
-  #pad[
-    ```typ
-    #unit("#joule#per#mole#per#kelvin")\
-    #unit("joule per mole per kelvin", interpreted-delimeter: " ")
-    ```
-    #unit("#joule#per#mole#per#kelvin")\
-    #unit("joule per mole per kelvin", interpreted-delimeter: " ")
-  ]
-  Note that the first macro does not actually need the delimeter.
-]
+// #param("interpreted-delimeter", "string", default: "#")[
+//   The delimeter to use to separate the macros in intepreted mode.
+//   #pad[
+//     ```typ
+//     #unit("#joule#per#mole#per#kelvin")\
+//     #unit("joule per mole per kelvin", interpreted-delimeter: " ")
+//     ```
+//     #unit("#joule#per#mole#per#kelvin")\
+//     #unit("joule per mole per kelvin", interpreted-delimeter: " ")
+//   ]
+//   Note that the first macro does not actually need the delimeter.
+// ]
 
 == Quantities
 
 = Meet the Units
 
-The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in literal mode as math mode accepts single letters.
+The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math it accepts single letters.
+
 
 // Turn off tables while editing docs as compiling tablex is very slow
 #if true {
@@ -457,19 +459,19 @@ figure(
     ..([Prefix], [Command], [Symbol], [Power]) * 2,
     hlinex(),
     ..((
-      "quecto", "deca",
-      "ronto", "hecto",
-      "yocto", "kilo", 
-      "atto", "mega",
-      "zepto", "giga",
-      "femto", "tera",
-      "pico", "peta",
-      "nano", "exa",
-      "micro", "zetta",
-      "milli", "yotta",
-      "centi", "ronna",
-      "deci", "quetta"
-    ).map(x => (x, raw(x), unit(prefixes._dict.at(x).symbol), num(prefixes._dict.at(x).power))).join()),
+      ("quecto", -30), ("deca", 1),
+      ("ronto", -27), ("hecto", 2),
+      ("yocto", -24), ("kilo", 3), 
+      ("atto", -21), ("mega", 6),
+      ("zepto", -18), ("giga", 9),
+      ("femto", -15), ("tera", 12),
+      ("pico", -12), ("peta", 15),
+      ("nano", -9), ("exa", 18),
+      ("micro", -6), ("zetta", 21),
+      ("milli", -3), ("yotta", 24),
+      ("centi", -2), ("ronna", 27),
+      ("deci", -1), ("quetta", 30)
+    ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
     hlinex(),
   ),
   caption: [SI prefixes]
