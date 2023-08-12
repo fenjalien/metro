@@ -1,6 +1,7 @@
 #import "units.typ"
 #import "prefixes.typ"
 #import "parsers.typ": display-units, parse-math-units, parse-string-units, tothe, raiseto, qualifier
+#import "parse_number.typ"
 
 #let _state-default = (
   units: units._dict,
@@ -27,6 +28,7 @@
   qualifier-mode: "subscript",
   qualifier-phrase: "",
   sticky-per: false,
+  allow-breaks: false,
 
   delimiter: " ",
 )
@@ -94,30 +96,104 @@
   s.qualifiers.insert(quali, qualifier(symbol))
   return s
 })
+/// Format a number.
+///
+/// - number (float, integer, content): The number to format.
+/// - e (integer): Exponent (optional). The exponent is applied to both the
+///            number and the uncertainty (pm) - if given. 
+/// - pm (float, integer, content): Uncertainty of the value. 
+/// - times (content): Symbol to use between number and factor 10^...
+/// - decimal-marker (string): The decimal marker used in the output is controlled with this parameter. 
+/// - group-digits (boolean): Whether to group digits in long numbers. 
+/// - group-size (integer): The size of digit groups. 
+/// - group-sep (integer): The separating token to use between digit groups. 
+/// - group-min-digits (integer): The minimum number of consecutive digits for digit grouping to kick in. 
+/// - tight (boolean): Whether to use tight display (reduces spaces between entities). 
+/// - implicit-plus (boolean): If set to `true`, `+` will be added in front of positive numbers. 
+#let num-impl(
+  number,
+  e: none, 
+  pm: none,
+  times: sym.dot,
+  decimal-marker: ".",
+  group-digits: true,
+  group-size: 3,
+  group-sep: sym.space.thin,
+  group-min-digits: 5,
+  tight: false,
+  implicit-plus: false,
+  ..options
+) = {
+  assert(group-size > 0, message: "The group size needs to be greater than 0")
 
-#let _num(number, e, pm, options) = {
-  assert(type(number) in ("float", "integer"))
-  number = str(number)
+  let num-str = parse_number.get-num-str(number, decimal-marker)
+  let e-pos = num-str.position("e")
+  if e-pos != none {
+    let (number, exp) = num-str.split("e")
+    num-str = number
+    if exp.starts-with("+") { exp = $exp.slice(#1)$ }
+    else if exp.starts-with("-") { exp = $-exp.slice(#1)$ }
+    e = $exp$
+  }
+
+  let decimal-pos = parse_number.get-decimal-pos(num-str, decimal-marker)
+  
   if pm != none {
-    if type(pm) in ("float", "integer") { 
-      pm = str(pm)
+    pm = parse_number.get-num-str(pm, decimal-marker)
+    let num-decimals = parse_number.get-num-decimals(num-str, decimal-marker)
+    let num-decimals-pm = parse_number.get-num-decimals(pm, decimal-marker)
+
+    if num-decimals < num-decimals-pm {
+      if num-decimals == 0 and not num-str.ends-with(".") { num-str += decimal-marker}
+      num-str += "0" * (num-decimals-pm - num-decimals)
+    } else if num-decimals > num-decimals-pm {
+      if num-decimals-pm == 0 and not pm.ends-with(".") { pm += decimal-marker}
+      pm += "0" * (num-decimals - num-decimals-pm)
+    } 
+    
+    if group-digits {
+      pm = parse_number.group-digits(pm, group-size, group-sep, group-min-digits, decimal-marker)
     }
-    number = "(" + number + sym.plus.minus + pm + ")"
   }
 
-  number = number.replace("-", sym.minus)
-  $number$
-
-  if e == none {
-    none
-  } else {
-    $#s.times 10^#e$
+  
+  
+  if group-digits {
+    num-str = parse_number.group-digits(num-str, group-size, group-sep, group-min-digits, decimal-marker)
   }
+  
+  if num-str.starts-with("-") {
+    num-str = $-#num-str.slice(1)$
+  } else if implicit-plus {
+    num-str = $+#num-str$
+  }
+
+  
+  
+  let power = if e == none { none } else { 
+    if tight { $#h(0pt)#times#h(0pt)10^#e$ }
+    else { $#times 10^#e$ }
+  }
+  
+  number = num-str
+  if pm != none {
+    if type(pm) in ("float", "integer") { pm = $#str(pm)$ }
+    if type(number) in ("float", "integer") { number = $#str(number)$ }
+    let pmspacing = if tight { none } else { sym.space.thin }
+    number = number + pmspacing + sym.plus.minus + pmspacing + pm
+    if power != none { number = $(number)$}
+  }
+  
+  $#number#power$
 }
 
+
+
 #let num(number, e: none, pm: none, ..options) = _state.display(s => {
-  return _num(number, e, pm, _update-dict(options.named(), s))
+  return num-impl(number, e: e, pm: pm, .._update-dict(options.named(), s))
 })
+
+
 
 #let qty(
   number, 
@@ -126,16 +202,18 @@
   pm: none,
   ..options
 ) = _state.display(s => {
+  assert(options.pos().len() == 0, message: "Unexpected positional arguments for qty()")
   let options = _update-dict(options.named(), s)
 
   let result = {
-    _num(number, e, pm, options)
+    let number = num(number, e: e, pm: pm, ..options)
+    if pm != none and e == none { number = $(number)$ }
+    number
     sym.space.thin
-    _unit(units, options)
+    unit(units, ..options)
   }
-  // if not allowbreaks { 
-  //   result = $#result$
-  // }
-
+  if not options.allow-breaks { 
+    result = $#result$
+  }
   result
 })
