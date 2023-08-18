@@ -4,6 +4,28 @@
 
 #import "@preview/tablex:0.0.4": tablex, hlinex, vlinex
 
+#show raw.where(lang: "example"): it => {
+  set text(size: 1.2em)
+  stack(
+    dir: ltr,
+    1em,
+    eval(
+      it.text, 
+      mode: "markup",
+      scope: units._dict + prefixes._dict + (
+        unit: unit,
+        num: num,
+        metro-setup: metro-setup,
+        qty: qty
+      )
+    ),
+    1fr,
+    raw(it.text, lang: "typ"),
+    1fr
+  )
+}
+
+
 #show link: set text(blue)
 
 #let param(term, t, default: none, description) = {
@@ -12,6 +34,7 @@
     nu: "Number",
     li: "Literal",
     sw: "Switch",
+    "in": "Integer"
   )
 
 
@@ -70,24 +93,227 @@ All options and function parameters use the following types:
 ```typ
 #num(number, e: none, pm: none, ..options)
 ```
-Formats a number.
+Formats a number. Exponents and uncertainties can be given using the named parameters. All parameters listed can be given as a string, content or a number. Note that number parsing is very limited and fragile at the moment. 
 
-#param("number", "nu", "The number to format.")
-#param("pm", "li", default: "none", "Uncertainty of the number.")
-#param("e", "nu", default: "none", "Exponent. The exponent is applied to both the number and the uncertainty if given.")
+Also note that explicitly written parts of a number when using a number type will be lost as Typst automatically parses them.
 
-#pad[
-  ```typ
-  ```
-  #num(123)\
-  #num(-1234)\
-  #num(12345)\
+#param("number", "li")[
+  The number to format.
 ]
+#param("pm", "li", default: "none", "Uncertainty.")
+#param("e", "li", default: "none", "Exponent.")
+
+```example
+#num(123)\
+#num("1234")\
+#num[12345]\
+#num(0.123)\
+#num("0,1234")\
+#num[.12345]\
+#num(e: -4)[3.45]\
+#num("-1", e: 10, print-unity-mantissa: false)
+```
+
 
 === Options
 
-#param("times", "c", "The symbol")
+#param("input-decimal-markers", "Array<Literal>", default: "('\.', ',')")[
+  An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the pacakge to the appropriate output marker.
+]
 
+#param("retain-explicit-decimal-marker", "sw", default: "false")[
+  Allows a trailing decimal marker with no decimal part present to be printed.
+  ```example
+  #num[10.]\
+  #num(retain-explicit-decimal-marker: true)[10.]
+  ```
+]
+
+#param("retain-explicit-plus", "sw", default: "false")[
+  Allows a leading plus sign to be printed.
+  ```example
+  #num[+345]\
+  #num(retain-explicit-plus: true)[+345]
+  ```
+]
+
+#param("retain-negative-zero", "sw", default: "false")[
+  Allows a negative sign on an entirely zero value.
+  ```example
+  #num[-0]\
+  #num(retain-negative-zero: true)[-0]
+  ```
+]
+
+#param("minimum-decimal-digits", "Integer", default: "0")[
+  May be used to pad the decimal component of a number to a given size.
+  ```example
+  #num(0.123)\
+  #num(0.123, minimum-decimal-digits: 2)\
+  #num(0.123, minimum-decimal-digits: 4)\
+  ```
+]
+
+#param("minimum-integer-digits", "Integer", default: "0")[
+  May be used to pad the integer component of a number to a given size.
+  ```example
+  #num(123)\
+  #num(123, minimum-integer-digits: 2)\
+  #num(123, minimum-integer-digits: 4)\
+  ```
+]
+
+#param("group-digits", "ch", default: "all")[
+  Whether to group digits into blocks to increase the ease of reading of numbers. Takes the values `all`, `none`, `decimal` and `integer`. Grouping can be acitivated separately for the integer and decimal parts of a number using the appropriately named values.
+
+  ```example
+  #num[12345.67890]\
+  #num(group-digits: "none")[12345.67890]\
+  #num(group-digits: "decimal")[12345.67890]\
+  #num(group-digits: "integer")[12345.67890]\
+  ```
+]
+
+#param("group-separator", "li", default: "sym.space.thin")[
+  The separator to use between groups of digits.
+  ```example
+  #num[12345]\
+  #num(group-separator: ",")[12345]\
+  #num(group-separator: " ")[12345]
+  ```
+]
+
+#param("group-minimum-digits", "in", default: "5")[
+  Controls how many digits must be present before grouping is applied. The number of digits is considered separately for the integer and decimal parts of the number: grouping does not "cross the boundary".
+
+  ```example
+  #num[1234]\
+  #num[12345]\
+  #num(group-minimum-digits: 4)[1234]\
+  #num(group-minimum-digits: 4)[12345]\
+  #num[1234.5678]\
+  #num[12345.67890]\
+  #num(group-minimum-digits: 4)[1234.5678]\
+  #num(group-minimum-digits: 4)[12345.67890]\
+  ```
+]
+
+#param("digit-group-size", "in", default: "3")[
+  Controls the number of digits in each group. Finer control can be achieved using `digit-group-first-size` and `digit-group-other-size`: the first group is that immediately by the decimal point, the other value applies to the second and subsequent groupings.
+
+  ```example
+  #num[1234567890]\
+  #num(digit-group-size: 5)[1234567890]\
+  #num(digit-group-other-size: 2)[1234567890]\
+  ```
+]
+
+#param("output-decimal-marker", "li", default: ".")[
+  The decimal marker used in the output. This can differ from the input marker.
+
+  ```example
+  #num(1.23)\
+  #num(output-decimal-marker: ",")[1.23]
+  ```
+]
+
+#param("exponent-base", "li", default: "10")[
+  The base of an exponent.
+  ```example
+  #num(exponent-base: "2", e: 2)[1]
+  ```
+]
+
+#param("exponent-product", "li", default: "sym.times")[
+  The symbol to use as the product between the number and its exponent.
+  ```example
+  #num(e: 2, exponent-product: sym.times)[1]\
+  #num(e: 2, exponent-product: sym.dot)[1]\
+  ```
+]
+
+#param("output-exponent-marker", "li", default: "none")[
+  When not `none`, the value stored will be used in place of the normal product and base combination.
+  ```example
+  #num(output-exponent-marker: "e", e: 2)[1]\
+  #num(output-exponent-marker: "E", e: 2)[1]
+  ```
+]
+
+#param("bracket-ambiguous-numbers", "sw", default: "true")[
+  There are certain combinations of numerical input which can be ambiguous. This can be corrected by adding brackets in the appropriate place.
+
+  ```example
+  #num(e: 4, pm: 0.3)[1.2]\
+  #num(bracket-ambiguous-numbers: false, e: 4, pm: 0.3)[1.2]\
+  ```
+]
+
+#param("bracket-negative-numbers", "sw", default: "false")[
+  Whether or not to display negative numbers in brackets.
+
+  ```example
+  #num[-15673]\
+  #num(bracket-negative-numbers: true)[-15673]\
+  ```
+]
+
+#param("tight-spacing", "sw", default: "false")[
+  Compresses spacing where possible.
+
+  ```example
+  #num(e: 3)[2]\
+  #num(e: 3, tight-spacing: true)[2]\
+  ```
+]
+
+#param("print-implicit-plus", "sw", default: "false")[
+  Force the number to have a sign. This is used if given and if no sign was present in the input.
+  ```example
+  #num(345)\
+  #num(345, print-implicit-plus: true)\
+  ```
+  It is possible to set this behaviour for the exponent and mantissa independently using `print-mantissa-implicit-plus` and `print-exponent-implicit-plus` respectively.
+]
+
+#param("print-unity-mantissa", "sw", default: "true")[
+  Controls the printing of a mantissa of 1.
+  ```example
+  #num(e: 4)[1]\
+  #num(e: 4, print-unity-mantissa: false)[1]\
+  ```
+]
+
+#param("print-zero-exponent", "sw", default: "false")[
+  Controls the printing of an exponent of 0.
+  ```example
+  #num(e: 0)[444]\
+  #num(e: 0, print-zero-exponent: true)[444]\
+  ```
+]
+
+#param("print-zero-integer", "sw", default: "true")[
+  Controls the printing of an integer component of 0.
+  ```example
+  #num(0.123)\
+  #num(0.123, print-zero-integer: false)\
+  ```
+]
+
+#param("zero-decimal-as-symbol", "sw", default: "false")[
+  Whether to show entirely zero decimal parts as a symbol. Uses the symbol stroed using `zero-symbol` as the replacement.
+
+  ```example
+  #num[123.00]\
+  #metro-setup(zero-decimal-as-symbol: true)
+  #num[123.00]\
+  #num(zero-symbol: [[#sym.bar.h]])[123.00]
+  ```
+]
+
+#param("zero-symbol", "li", default: "sym.bar.h")[
+  The symbol to use when `zero-decimal-as-symbol` is `true`.
+]
 
 == Units
 
@@ -337,22 +563,38 @@ The separator between each unit. The default setting is a thin space: another co
   ]
 ]
 
-// #param("interpreted-delimeter", "string", default: "#")[
-//   The delimeter to use to separate the macros in intepreted mode.
-//   #pad[
-//     ```typ
-//     #unit("#joule#per#mole#per#kelvin")\
-//     #unit("joule per mole per kelvin", interpreted-delimeter: " ")
-//     ```
-//     #unit("#joule#per#mole#per#kelvin")\
-//     #unit("joule per mole per kelvin", interpreted-delimeter: " ")
-//   ]
-//   Note that the first macro does not actually need the delimeter.
-// ]
-
 #metro-reset()
 
 == Quantities
+
+```typ
+#qty(number, unit, ..options)
+```
+
+This function combines the functionality of `num` and `unit` and formats the number and unit together. The `number` and `unit` arguments work exactly like those for the `num` and `unit` functions respectively.
+
+```example
+#qty(1.23, "J / mol / kelvin")\
+$qty(.23, candela, e: 7)$\
+#qty(1.99, "per kilogram", per-mode: "symbol")\
+#qty(1.345, "C/mol", per-mode: "fraction")
+```
+
+=== Options
+
+#param("allow-quantity-breaks", "sw", default: "false")[
+  Controls whether the combination of the number and unit can be split across lines.
+  #pad[
+  ```typ
+  #box(width: 2.9cm)[Some filler text #qty(10, "m")]\
+  #metro-setup(allow-quantity-breaks: true)
+  #box(width: 2.9cm)[Some filler text #qty(10, "m")]
+  ```
+  #box(width: 2.9cm)[Some filler text #qty(10, "m")]\
+  #metro-setup(allow-quantity-breaks: true)
+  #box(width: 2.9cm)[Some filler text #qty(10, "m")]
+  ]
+]
 
 = Meet the Units
 
