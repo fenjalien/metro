@@ -55,16 +55,19 @@
   block(pad(description, left: 2em), above: 0.65em)
 }
 
-#align(center, text(16pt)[Metro])
+#align(center)[
+  #text(16pt)[Metro]
+
+  #link("https://github.com/fenjalien")[fenjalien] and #link("https://github.com/Mc-Zen")[Mc-Zen] \
+  https://github.com/fenjalien/typst-units \
+  Version 0.1.0
+]
 
 #outline(indent: auto)
 
 #pagebreak()
 
 #set heading(numbering: "1.1")
-// #set heading(numbering: (..a) => if a.pos().len() < 3 {
-//   numbering("1.1", ..a)
-// })
 
 = Introduction
 
@@ -602,7 +605,7 @@ The following tables show the currently supported prefixes, units and their abbr
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
-#if false {
+#if true {
 
 set figure(kind: "Table", supplement: "Table")
 
