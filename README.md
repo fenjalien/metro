@@ -1,4 +1,4 @@
-# Metro
+# [Metro](https://github.com/fenjalien/metro)
 The Metro package aims to be a port of the Latex package siunitx. It allows easy typesetting of numbers and units with options. This package is very early in development and many features are missing, so any feature requests or bug reports are welcome!
 
 Metro’s name comes from Metrology, the study scientific study of measurement.
