@@ -6,10 +6,10 @@ Metro’s name comes from Metrology, the study scientific study of measurement.
 **Bug reports, feature requests, and PRs are welcome!**
 
 ## Usage
-Requires Typst v0.7.0+.
+Requires Typst v0.8.0+.
 Use Typst's package manager:
 ```
-#import "@preview/units:0.1.0": *
+#import "@preview/metro:0.1.0": *
 ```
 You can also download the `src` folder and import `lib.typ` and import:
 ```
