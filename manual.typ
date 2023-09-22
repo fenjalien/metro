@@ -4,11 +4,9 @@
 
 #import "@preview/tablex:0.0.4": tablex, hlinex, vlinex
 
-#show raw.where(lang: "example"): it => {
+#let example(it, dir) = {
   set text(size: 1.2em)
-  stack(
-    dir: ltr,
-    1em,
+  let (a, b) = (
     eval(
       it.text, 
       mode: "markup",
@@ -16,15 +14,36 @@
         unit: unit,
         num: num,
         metro-setup: metro-setup,
-        qty: qty
+        qty: qty,
+        declare-unit: declare-unit,
+        declare-power: declare-power,
+        declare-qualifier: declare-qualifier,
+        create-prefix: create-prefix,
+        declare-prefix: declare-prefix
       )
     ),
-    1fr,
-    raw(it.text, lang: "typ"),
-    1fr
+    raw(it.text.replace("\\\n", "\n"), lang: "typ")
+  )
+  pad(
+    left: 1em,
+    stack(
+      dir: dir,
+      ..if dir == ltr {
+        (a, 1fr, par(leading: 0.9em, b), 1fr)
+      } else {
+        (b, linebreak(), a)
+      }
+    )
   )
 }
 
+#show raw.where(lang: "example"): it => {
+  example(it, ltr)
+}
+
+#show raw.where(lang: "example-stack"): it => {
+  example(it, ttb)
+}
 
 #show link: set text(blue)
 
@@ -153,7 +172,7 @@ Also note that explicitly written parts of a number when using a number type wil
   ```example
   #num(0.123)\
   #num(0.123, minimum-decimal-digits: 2)\
-  #num(0.123, minimum-decimal-digits: 4)\
+  #num(0.123, minimum-decimal-digits: 4)
   ```
 ]
 
@@ -162,7 +181,7 @@ Also note that explicitly written parts of a number when using a number type wil
   ```example
   #num(123)\
   #num(123, minimum-integer-digits: 2)\
-  #num(123, minimum-integer-digits: 4)\
+  #num(123, minimum-integer-digits: 4)
   ```
 ]
 
@@ -173,7 +192,7 @@ Also note that explicitly written parts of a number when using a number type wil
   #num[12345.67890]\
   #num(group-digits: "none")[12345.67890]\
   #num(group-digits: "decimal")[12345.67890]\
-  #num(group-digits: "integer")[12345.67890]\
+  #num(group-digits: "integer")[12345.67890]
   ```
 ]
 
@@ -197,7 +216,7 @@ Also note that explicitly written parts of a number when using a number type wil
   #num[1234.5678]\
   #num[12345.67890]\
   #num(group-minimum-digits: 4)[1234.5678]\
-  #num(group-minimum-digits: 4)[12345.67890]\
+  #num(group-minimum-digits: 4)[12345.67890]
   ```
 ]
 
@@ -207,7 +226,7 @@ Also note that explicitly written parts of a number when using a number type wil
   ```example
   #num[1234567890]\
   #num(digit-group-size: 5)[1234567890]\
-  #num(digit-group-other-size: 2)[1234567890]\
+  #num(digit-group-other-size: 2)[1234567890]
   ```
 ]
 
@@ -231,7 +250,7 @@ Also note that explicitly written parts of a number when using a number type wil
   The symbol to use as the product between the number and its exponent.
   ```example
   #num(e: 2, exponent-product: sym.times)[1]\
-  #num(e: 2, exponent-product: sym.dot)[1]\
+  #num(e: 2, exponent-product: sym.dot)[1]
   ```
 ]
 
@@ -248,7 +267,7 @@ Also note that explicitly written parts of a number when using a number type wil
 
   ```example
   #num(e: 4, pm: 0.3)[1.2]\
-  #num(bracket-ambiguous-numbers: false, e: 4, pm: 0.3)[1.2]\
+  #num(bracket-ambiguous-numbers: false, e: 4, pm: 0.3)[1.2]
   ```
 ]
 
@@ -257,7 +276,7 @@ Also note that explicitly written parts of a number when using a number type wil
 
   ```example
   #num[-15673]\
-  #num(bracket-negative-numbers: true)[-15673]\
+  #num(bracket-negative-numbers: true)[-15673]
   ```
 ]
 
@@ -266,7 +285,7 @@ Also note that explicitly written parts of a number when using a number type wil
 
   ```example
   #num(e: 3)[2]\
-  #num(e: 3, tight-spacing: true)[2]\
+  #num(e: 3, tight-spacing: true)[2]
   ```
 ]
 
@@ -274,7 +293,7 @@ Also note that explicitly written parts of a number when using a number type wil
   Force the number to have a sign. This is used if given and if no sign was present in the input.
   ```example
   #num(345)\
-  #num(345, print-implicit-plus: true)\
+  #num(345, print-implicit-plus: true)
   ```
   It is possible to set this behaviour for the exponent and mantissa independently using `print-mantissa-implicit-plus` and `print-exponent-implicit-plus` respectively.
 ]
@@ -283,7 +302,7 @@ Also note that explicitly written parts of a number when using a number type wil
   Controls the printing of a mantissa of 1.
   ```example
   #num(e: 4)[1]\
-  #num(e: 4, print-unity-mantissa: false)[1]\
+  #num(e: 4, print-unity-mantissa: false)[1]
   ```
 ]
 
@@ -291,7 +310,7 @@ Also note that explicitly written parts of a number when using a number type wil
   Controls the printing of an exponent of 0.
   ```example
   #num(e: 0)[444]\
-  #num(e: 0, print-zero-exponent: true)[444]\
+  #num(e: 0, print-zero-exponent: true)[444]
   ```
 ]
 
@@ -299,7 +318,7 @@ Also note that explicitly written parts of a number when using a number type wil
   Controls the printing of an integer component of 0.
   ```example
   #num(0.123)\
-  #num(0.123, print-zero-integer: false)\
+  #num(0.123, print-zero-integer: false)
   ```
 ]
 
@@ -333,7 +352,7 @@ When using math Typst accepts single characters but multiple characters together
   // because `units` and `prefixes` here are modules you can import what you need
   #import units: gram, metre, second
   #import prefixes: kilo
-  $unit(kilo gram / metre second^2)$
+  $unit(kilo gram metre / second^2)$
   // You can also just import everything instead
   #import units: *
   #import prefixes: *
@@ -345,103 +364,63 @@ When using math Typst accepts single characters but multiple characters together
   $unit(joule / mole / kelvin)$
 ]
 
-When using strings there is no need to import any units or prefixes as the string is parsed. Additionally several variables have been defined to allow the string to be more human readable. You can also use the same syntax as with math mode. #pad[
-  ```typ
-  // String
-  #unit("kilo gram metre per square second")\
-  // Math equivalent
-  #unit($kilo gram metre / second^2$)\
-  // String using math syntax
-  #unit("kilo gram metre / second^2")
-  ```
-  // String
-  #unit("kilo gram metre per square second")\
-  // Math equivalent
-  #unit($kilo gram metre / second^2$)\
-  // String using math syntax
-  #unit("kilo gram metre / second^2")
-]
+When using strings there is no need to import any units or prefixes as the string is parsed. Additionally several variables have been defined to allow the string to be more human readable. You can also use the same syntax as with math mode. 
+```example-stack
+// String
+#unit("kilo gram metre per square second")\
+// Math equivalent
+#unit($kilo gram metre / second^2$)\
+// String using math syntax
+#unit("kilo gram metre / second^2")
+```
 
 `per` used as in "metres _per_ second" is equivalent to a slash `/`. When using this in a string you don't need to specify a numerator.
-#pad[
-  ```typ
-  #unit("metre per second")\
-  $unit(metre/second)$
+```example-stack
+#unit("metre per second")\
+$unit(metre/second)$\
 
-  #unit("per square becquerel")\
-  #unit("/becquerel^2")
-  ```
-  #unit("metre per second")\
-  $unit(metre/second)$
-
-  #unit("per square becquerel")\
-  #unit("/becquerel^2")
-]
+#unit("per square becquerel")\
+#unit("/becquerel^2")
+```
 
 `square` and `cubic` apply their respective powers to the units after them, while `squared` and `cubed` apply to units before them. 
-#pad[
-  ```typ
-  #unit("square becquerel")\
-  #unit("joule squared per lumen")\
-  #unit("cubic lux volt tesla cubed")
-  ```
-  #unit("square becquerel")\
-  #unit("joule squared per lumen")\
-  #unit("cubic lux volt tesla cubed")
-]
+```example-stack
+#unit("square becquerel")\
+#unit("joule squared per lumen")\
+#unit("cubic lux volt tesla cubed")
+```
+
 Generic powers can be inserted using the `tothe` and `raiseto` functions. `tothe` specifically is equivalent to using caret `^`.
-#pad[
-  ```typ
-  #unit("henry tothe(5)")\
-  #unit($henry^5$)\
-  #unit("henry^5")
+```example-stack
+#unit("henry tothe(5)")\
+#unit($henry^5$)\
+#unit("henry^5")
 
-  #unit("raiseto(4.5) radian")\
-  #unit($radian^4.5$)\
-  #unit("radian^4.5")
-  ```
-  #unit("henry tothe(5)")\
-  #unit($henry^5$)\
-  #unit("henry^5")
-
-  #unit("raiseto(4.5) radian")\
-  #unit($radian^4.5$)\
-  #unit("radian^4.5")
-]
+#unit("raiseto(4.5) radian")\
+#unit($radian^4.5$)\
+#unit("radian^4.5")
+```
 
 Generic qualifiers are available using the `of` function which is equivalent to using an underscore `_`. Note that when using an underscore for qualifiers in a string with a space, to capture the whole qualifier use brackets `()`.
-#pad[
-  ```typ
-  #unit("kilogram of(metal)")\
-  #unit($kilogram_"metal"$)\
-  #unit("kilogram_metal")
+```example-stack
+#unit("kilogram of(metal)")\
+#unit($kilogram_"metal"$)\
+#unit("kilogram_metal")
 
-  #metro-setup(qualifier-mode: "bracket")
-  #unit("milli mole of(cat) per kilogram of(prod)")\
-  #unit($milli mole_"cat" / kilogram_"prod"$)\
-  #unit("milli mole_(cat) / kilogram_(prod)")
-  ```
-  #unit("kilogram of(metal)")\
-  #unit($kilogram_"metal"$)\
-  #unit("kilogram_metal")
-
-  #metro-setup(qualifier-mode: "bracket")
-  #unit("milli mole of(cat) per kilogram of(prod)")\
-  #unit($milli mole_"cat" / kilogram_"prod"$)\
-  #unit("milli mole_(cat) / kilogram_(prod)")
-  #metro-setup(qualifier-mode: "subscript")
-]
+#metro-setup(qualifier-mode: "bracket")
+#unit("milli mole of(cat) per kilogram of(prod)")\
+#unit($milli mole_"cat" / kilogram_"prod"$)\
+#unit("milli mole_(cat) / kilogram_(prod)")
+```
 
 === Options
 
 #param("inter-unit-product", "li", default: "sym.space.thin", [
 The separator between each unit. The default setting is a thin space: another common choice is a centred dot.
-```typ
+```example
 #unit("farad squared lumen candela")\
 #unit("farad squared lumen candela", inter-unit-product: $dot.c$)
 ```
-#unit("farad squared lumen candela")\
-#unit("farad squared lumen candela", inter-unit-product: $dot.c$)
 ])
 
 
@@ -449,121 +428,81 @@ The separator between each unit. The default setting is a thin space: another co
   Use to alter the handling of `per`. 
 
   / power: Reciprocal powers
-  #pad[
-    ```typ
-    #unit("joule per mole per kelvin")\
-    #unit("metre per second squared")
-    ```
-    #unit("joule per mole per kelvin")\
-    #unit("metre per second squared")
-  ]
+  ```example
+  #unit("joule per mole per kelvin")\
+  #unit("metre per second squared")
+  ```
 
   / fraction: Uses the `math.frac` function (also known as `$ / $`) to typeset positive and negative powers of a unit separately.
-  #pad[```typ
+  ```example
   #unit("joule per mole per kelvin", per-mode: "fraction")\
   #unit("metre per second squared", per-mode: "fraction")
   ```
-  #unit("joule per mole per kelvin", per-mode: "fraction")\
-  #unit("metre per second squared", per-mode: "fraction")]
 
   / symbol: Separates the two parts of a unit using the symbol in `per-symbol`. This method for displaying units can be ambiguous, and so brackets are added unless `bracket-unit-denominator` is set to `false`. Notice that `bracket-unit-denominator` only applies when `per-mode` is set to symbol.
-  #pad[```typ
+  ```example
   #metro-setup(per-mode: "symbol")
   #unit("joule per mole per kelvin")\
   #unit("metre per second squared")
   ```
-  #metro-setup(per-mode: "symbol")
-  #unit("joule per mole per kelvin")\
-  #unit("metre per second squared")
-  ]
 ])
 
 #param("per-symbol", "li", default: "sym.slash")[
   The symbol to use to separate the two parts of a unit when `per-symbol` is `"symbol"`.
-  #pad[
-    ```typ
-    #unit("joule per mole per kelvin", per-mode: "symbol", per-symbol: [ div ])
-    ```
-    #unit("joule per mole per kelvin", per-mode: "symbol", per-symbol: [ div ])
-  ]
+  ```example-stack
+  #unit("joule per mole per kelvin", per-mode: "symbol", per-symbol: [ div ])
+  ```
 ]
 
 #param("bracket-unit-denominator", "sw", default: "true")[
   Whether or not to add brackets to unit denominators when `per-symbol` is `"symbol"`.
-  #pad[
-    ```typ
-    #unit("joule per mole per kelvin", per-mode: "symbol", bracket-unit-denominator: false)
-    ```
-    #unit("joule per mole per kelvin", per-mode: "symbol", bracket-unit-denominator: false)
-  ]
+  ```example-stack
+  #unit("joule per mole per kelvin", per-mode: "symbol", bracket-unit-denominator: false)
+  ```
 ]
 
 #metro-setup(per-mode: "power")
 
 #param("sticky-per", "sw", default: "false")[
   Normally, `per` applies only to the next unit given. When `sticky-per` is `true`, this behaviour is changed so that `per` applies to all subsequent units.
-  #pad[
-    ```typ
-    #unit("pascal per gray henry")\
-    #unit("pascal per gray henry", sticky-per: true)
-    ```
-    #unit("pascal per gray henry")\
-    #unit("pascal per gray henry", sticky-per: true)
-  ]
+  ```example
+  #unit("pascal per gray henry")\
+  #unit("pascal per gray henry", sticky-per: true)
+  ```
 ]
 
 #param("qualifier-mode", "ch", default: "subscript")[
   Sets how unit qualifiers can be printed.
   / subscript:
-  #pad[
-    ```typ
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")
-    ```
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")
-  ]
+  ```example-stack
+  #unit("kilogram of(pol) squared per mole of(cat) per hour")
+  ```
 
   / bracket:
-  #pad[
-    ```typ
-    #unit("kilogram of(pol) squared per mole of(cat) per hour", qualifier-mode: "bracket")
-    ```
-    #unit("kilogram of(pol) squared per mole of(cat) per hour", qualifier-mode: "bracket")
-  ]
+  ```example-stack
+  #unit("kilogram of(pol) squared per mole of(cat) per hour", qualifier-mode: "bracket")
+  ```
 
   / combine: Powers can lead to ambiguity and are automatically detected and brackets added as appropriate.
-  #pad[
-    ```typ
-    #unit("deci bel of(i)", qualifier-mode: "combine")
-    ```
-    #unit("deci bel of(i)", qualifier-mode: "combine")
-  ]
+  ```example
+  #unit("deci bel of(i)", qualifier-mode: "combine")
+  ```
 
-  / phrase: Used with `qualifier-phrase`, which allows for example a space or othre linking text to be inserted.
-  #pad[
-    ```typ
-    #metro-setup(qualifier-mode: "phrase", qualifier-phrase: sym.space)
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")\
-    #metro-setup(qualifier-phrase: [ of ])
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")
-    ```
-    #metro-setup(qualifier-mode: "phrase", qualifier-phrase: sym.space)
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")\
-    #metro-setup(qualifier-phrase: [ of ])
-    #unit("kilogram of(pol) squared per mole of(cat) per hour")
-  ]
-  
+  / phrase: Used with `qualifier-phrase`, which allows for example a space or other linking text to be inserted.
+  ```example-stack
+  #metro-setup(qualifier-mode: "phrase", qualifier-phrase: sym.space)
+  #unit("kilogram of(pol) squared per mole of(cat) per hour")\
+  #metro-setup(qualifier-phrase: [ of ])
+  #unit("kilogram of(pol) squared per mole of(cat) per hour")
+  ```
 ]
 
 #param("power-half-as-sqrt", "sw", default: "false")[
   When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root.
-  #pad[
-    ```typ
-    #unit("Hz tothe(0.5)")\
-    #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
-    ```
-    #unit("Hz tothe(0.5)")\
-    #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
-  ]
+  ```example
+  #unit("Hz tothe(0.5)")\
+  #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
+  ```
 ]
 
 #metro-reset()
@@ -587,21 +526,16 @@ $qty(.23, candela, e: 7)$\
 
 #param("allow-quantity-breaks", "sw", default: "false")[
   Controls whether the combination of the number and unit can be split across lines.
-  #pad[
-  ```typ
-  #box(width: 2.9cm)[Some filler text #qty(10, "m")]\
+  ```example-stack
+  #box(width: 4.5cm)[Some filler text #qty(10, "m")]\
   #metro-setup(allow-quantity-breaks: true)
-  #box(width: 2.9cm)[Some filler text #qty(10, "m")]
+  #box(width: 4.5cm)[Some filler text #qty(10, "m")]
   ```
-  #box(width: 2.9cm)[Some filler text #qty(10, "m")]\
-  #metro-setup(allow-quantity-breaks: true)
-  #box(width: 2.9cm)[Some filler text #qty(10, "m")]
-  ]
 ]
 
 = Meet the Units
 
-The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math it accepts single letters.
+The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
@@ -944,18 +878,12 @@ Declare's a custom unit to be used with the `unit` and `qty` functions.
 #param("unit", "string")[The string to use to identify the unit for string input.]
 #param("symbol", "li")[The unit's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
 
-#pad[
-  ```typ
-  #let inch = "in"
-  #declare-unit("inch", inch)
-  #unit("inch / s")\
-  #unit($inch / s$)
-  ```
-  #let inch = "in"
-  #declare-unit("inch", inch)
-  #unit("inch / s")\
-  #unit($inch / s$)
-]
+```example-stack
+#let inch = "in"
+#declare-unit("inch", inch)
+#unit("inch / s")\
+#unit($inch / s$)
+```
 
 == Prefixes
 ```typ
@@ -975,40 +903,29 @@ Declare's a custom prefix to be used with the `unit` and `qty` functions.
 #param("symbol", "li")[The prefix's symbol. This should be the output of the `create-prefix` function specified above.]
 #param("power-tens", "nu")[The power ten of the prefix.]
 
-#pad[
-  ```typ
-  #let myria = create-prefix("my")
-  #declare-prefix("myria", myria, 4)
-  #unit("myria meter")\
-  #unit($myria meter$)
-  ```
-  #let myria = create-prefix("my")
-  #declare-prefix("myria", myria, 4)
-  #unit("myria meter")\
-  #unit($myria meter$)
-]
+```example-stack
+#let myria = create-prefix("my")
+#declare-prefix("myria", myria, 4)
+#unit("myria meter")\
+#unit($myria meter$)
+```
 
 == Powers
 ```typ
 #declare-power(before, after, power)
 ```
 
-This function adds two symbols for string input, one for use before a unit, the second for ues after a unit, obth of which are equivalent to the `power`. 
+This function adds two symbols for string input, one for use before a unit, the second for use after a unit, both of which are equivalent to the `power`. 
 
 #param("before", "string")[The string that specifies this power before a unit.]
 #param("after", "string")[The string that specifies this power after a unit.]
 #param("power", "nu")[The power.]
 
-#pad[
-  ```typ
-  #declare-power("quartic", "tothefourth", 4)
-  #unit("kilogram tothefourth")\
-  #unit("quartic metre")
-  ```
-  #declare-power("quartic", "tothefourth", 4)
-  #unit("kilogram tothefourth")\
-  #unit("quartic metre")
-]
+```example-stack
+#declare-power("quartic", "tothefourth", 4)
+#unit("kilogram tothefourth")\
+#unit("quartic metre")
+```
 
 == Qualifiers
 ```typ
@@ -1020,13 +937,8 @@ This function defines a custom qualifier for string input.
 #param("qualifier", "string")[The string that specifies this qualifier.]
 #param("symbol", "li")[The qualifier's symbol. Can be string or content.]
 
-#pad[
-  ```typ
-  #declare-qualifier("polymer", "pol")
-  #declare-qualifier("catalyst", "cat")
-  #unit("gram polymer per mole catalyst per hour")
-  ```
-  #declare-qualifier("polymer", "pol")
-  #declare-qualifier("catalyst", "cat")
-  #unit("gram polymer per mole catalyst per hour")
-]
+```example-stack
+#declare-qualifier("polymer", "pol")
+#declare-qualifier("catalyst", "cat")
+#unit("gram polymer per mole catalyst per hour")
+```
