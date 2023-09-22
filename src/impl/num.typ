@@ -1,8 +1,8 @@
-#import "@preview/t4t:0.2.0": is
+#import "@preview/t4t:0.3.2": is
 #import "/src/utils.typ": combine-dict
 
 #let number-to-string(number) = {
-  number = if type(number) == "content" {
+  number = if is.content(number) {
     if is.sequence(number) {
       number.children.map(c => c.text).join()
     } else {

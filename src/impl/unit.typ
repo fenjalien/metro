@@ -1,11 +1,6 @@
 #import "@preview/t4t:0.2.0": is
 #import "../utils.typ": combine-dict
 
-#let _is-elem(elem, name) = {
-  return type(elem) == "content" and repr(elem.func()) == name
-}
-
-
 // NULL unicode character as a marker
 #let NULL-after = [\u{FFFF} ]
 #let NULL-before = [ \u{FFFF}]
@@ -63,7 +58,7 @@
             cur.per.map(p => {
               let minus = [#sym.minus]
               let power = if p.power != none {
-                if _is-elem(p.power, "sequence") {
+                if is.sequence(p.power) {
                   if p.power.children.first() == minus {
                     p.power.children.slice(1)
                   } else {
@@ -110,9 +105,9 @@
 
 // Converts content or string into an array of dictionaries then passes them to display-units
 #let _unit(input, options) = {
-  assert(type(input) in ("string", "content"), message: "Expected string or content input type, got " + type(input) + " instead.")
+  assert(type(input) in (str, content), message: "Expected string or content input type, got " + type(input) + " instead.")
 
-  let input = if type(input) == "string" {
+  let input = if is.str(input) {
     // Converts the string input into math content
     // The first replace adds quote marks around words attached to underscores otherwise math doesn't capture the qualifier correctly.
     // Second replace removes slashes with pers as they allow no numerator to be present.
