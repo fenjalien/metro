@@ -542,6 +542,25 @@ $qty(.23, candela, e: 7)$\
   ```
 ]
 
+#param("separate-uncertainty", "ch", default: "bracket")[
+  When a number has multiple parts, then the unit must apply to all parts of the number.
+
+  / bracket: Places the entire numericalpart in brackets and use a single unit symbol.
+  ```example
+  #qty(12.3, "kg", pm: 0.4)
+  ```
+
+  / repeat: Prints the unit for each part of the number.
+  ```example
+  #qty(12.3, "kg", pm: 0.4, separate-uncertainty: "repeat")
+  ```
+
+  / single: Prints only one unit symbol: mathematically incorrect.
+  ```example
+  #qty(12.3, "kg", pm: 0.4, separate-uncertainty: "single")
+  ```
+]
+
 = Meet the Units
 
 The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.

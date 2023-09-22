@@ -139,7 +139,7 @@
 
   // Return
   return math.equation({
-    if bracket-ambiguous-numbers {
+    if bracket-ambiguous-numbers or (options.separate-uncertainty == "bracket" and uncertainty != none) {
       "("
     }
     if bracket-negative-numbers {
@@ -157,11 +157,17 @@
     if bracket-negative-numbers {
       ")"
     }
+    if options.separate-uncertainty == "repeat" and uncertainty != none {
+      options.separate-uncertainty-unit
+    }
     uncertainty
     if bracket-ambiguous-numbers {
       ")"
     }
     exponent
+    if options.separate-uncertainty == "bracket" and uncertainty != none {
+      ")"
+    }
   })
 }
 
@@ -215,7 +221,11 @@
       tight-spacing: false,
       bracket-ambiguous-numbers: true,
       zero-decimal-as-symbol: false,
-      zero-symbol: sym.bar.h
+      zero-symbol: sym.bar.h,
+
+      // qty
+      separate-uncertainty: "bracket",
+      separate-uncertainty-unit: none,
     ), only-update: true)
   )
 }
