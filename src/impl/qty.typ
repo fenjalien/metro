@@ -7,11 +7,12 @@
   e: none,
   pm: none,
   allow-quantity-breaks: false,
+  quantity-product: sym.space.thin,
   ..options
 ) = {
   let result = {
     num(number, e: e, pm: pm, ..options)
-    $space.thin$
+    $#quantity-product$
     unit(unt, ..options)
   }
   return if allow-quantity-breaks {

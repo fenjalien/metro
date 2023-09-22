@@ -533,6 +533,15 @@ $qty(.23, candela, e: 7)$\
   ```
 ]
 
+#param("quantity-product", "li", default: "sym.space.thin")[
+  The product symbol between the number and unit.
+  ```example-stack
+  #qty(2.67, "farad")\
+  #qty(2.67, "farad", quantity-product: sym.space)\
+  #qty(2.67, "farad", quantity-product: none)
+  ```
+]
+
 = Meet the Units
 
 The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.
