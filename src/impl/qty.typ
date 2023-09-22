@@ -13,8 +13,12 @@
 ) = {
   let result = {
     let u = {
-      $#quantity-product$
-      unit(unt, ..options)
+      if options.named().at("per-mode", default: "") == "symbol" {
+        unit(unt, quantity-product: quantity-product, ..options)
+      } else {
+        $#quantity-product$
+        unit(unt, ..options)
+      }
     }
     num(number, e: e, pm: pm, separate-uncertainty: separate-uncertainty, separate-uncertainty-unit: if separate-uncertainty == "repeat" { u }, ..options)
     u

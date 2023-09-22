@@ -24,15 +24,19 @@
     ),
     raw(it.text.replace("\\\n", "\n"), lang: "typ")
   )
-  pad(
-    left: 1em,
-    stack(
-      dir: dir,
-      ..if dir == ltr {
-        (a, 1fr, par(leading: 0.9em, b), 1fr)
-      } else {
-        (b, linebreak(), a)
-      }
+  block(
+    breakable: false,
+    spacing: 0em,
+    pad(
+      left: 1em,
+      stack(
+        dir: dir,
+        ..if dir == ltr {
+          (a, 1fr, par(leading: 0.9em, b), 1fr)
+        } else {
+          (b, linebreak(), a)
+        }
+      )
     )
   )
 }

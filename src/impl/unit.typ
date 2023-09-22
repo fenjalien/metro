@@ -16,7 +16,6 @@
   // This isn't really a stack we could just use a for loop to be honest.
   // Recursion is used here because the input already has been parsed so we know we won't have to modify a previous element. Only the current one.
   let stack = input.rev()
-  let pers = ()
   while stack.len() > 0 {
     let cur = stack.pop()
     let res = cur.at("body", default: [])
@@ -87,7 +86,8 @@
         if options.bracket-unit-denominator and cur.per.len() > 1 {
           denom = "(" + denom + ")"
         }
-        res = res + options.per-symbol + denom
+        res = if res != none { options.quantity-product } + res + options.per-symbol + denom
+        options.quantity-product = none
       }
     }
 
@@ -268,6 +268,8 @@
         prefix-power-tens: none,
         powers: none,
         qualifiers: none,
+
+        quantity-product: none
       ),
       only-update: true,
     )
