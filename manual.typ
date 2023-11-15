@@ -666,10 +666,25 @@ figure(
 
 figure(
   tablex(
+    columns: 3,
+    auto-lines: false,
+    hlinex(),
+    ..headers,
+    hlinex(),
+    ..generate(
+      "byte",
+    ),
+    hlinex(),
+  ),
+  caption: [Non-SI units.]
+)
+
+figure(
+  tablex(
     columns: 8,
     auto-lines: false,
     hlinex(),
-    ..([Prefix], [Command], [Symbol], [Power]) * 2,
+    ..([Prefix], [Command], [Symbol], [$10^x$]) * 2,
     hlinex(),
     ..((
       ("quecto", -30), ("deca", 1),
@@ -689,11 +704,34 @@ figure(
   ),
   caption: [SI prefixes]
 )
+figure(
+  tablex(
+    columns: 4,
+    auto-lines: false,
+    hlinex(),
+    [Prefix], [Command], [Symbol], [$2^x$],
+    hlinex(),
+    ..((
+      ("kibi", 10),
+      ("mebi", 20),
+      ("gibi", 30),
+      ("tebi", 40),
+      ("pebi", 50),
+      ("exbi", 60),
+      ("zebi", 70),
+      ("yobi", 80),
+    ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
+    hlinex(),
+  ),
+  caption: [Binary prefixes]
+)
+
 let ge(..xs) = {
   let xs = xs.pos()
   for i in range(0, xs.len()-1, step: 2) {
+    let name = xs.at(i)
     let abbr = xs.at(i+1)
-    (xs.at(i), raw(abbr), unit(abbr))
+    (name, raw(abbr), unit(abbr))
   }
 }
 
@@ -889,6 +927,21 @@ page(
           "sievert", "Sv",
           "steradian", "sr",
           "weber", "Wb"
+        ),
+        hlinex(),
+        ..ge(
+          "kilobyte", "kB",
+          "megabyte", "MB",
+          "gigabyte", "GB",
+          "terabyte", "TB",
+          "petabyte", "PB",
+          "exabyte", "EB",
+          "kibibyte", "KiB",
+          "mebibyte", "MiB",
+          "gibibyte", "GiB",
+          "tebibyte", "TiB",
+          "pebibyte", "PiB",
+          "exbibyte", "EiB",
         ),
       )
     )

@@ -25,6 +25,16 @@
 #let ronna = $R$
 #let quetta = $Q$
 
+// Binary prefixes
+#let kibi = $K i$
+#let mebi = $M i$
+#let gibi = $G i$
+#let tebi = $T i$
+#let pebi = $P i$
+#let exbi = $E i$
+#let zebi = $Z i$
+#let yobi = $Y i$
+
 #{
   quecto = math.class("unary", quecto)
   ronto = math.class("unary", ronto)
@@ -51,6 +61,15 @@
   yotta = math.class("unary", yotta)
   ronna = math.class("unary", ronna)
   quetta = math.class("unary", quetta)
+
+  kibi = math.class("unary", kibi)
+  mebi = math.class("unary", mebi)
+  gibi = math.class("unary", gibi)
+  tebi = math.class("unary", tebi)
+  pebi = math.class("unary", pebi)
+  exbi = math.class("unary", exbi)
+  zebi = math.class("unary", zebi)
+  yobi = math.class("unary", yobi)
 }
 #let _dict = (
   quecto: quecto,
@@ -77,7 +96,16 @@
   zetta: zetta,
   yotta: yotta,
   ronna: ronna,
-  quetta: quetta
+  quetta: quetta,
+  
+  kibi: kibi,
+  mebi: mebi,
+  gibi: gibi,
+  tebi: tebi,
+  pebi: pebi,
+  exbi: exbi,
+  zebi: zebi,
+  yobi: yobi,
 )
 
 #let _power-tens = (
