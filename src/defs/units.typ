@@ -52,6 +52,7 @@
 #let arcsecond = $prime.double$
 #let neper = $N p$
 #let tonne = $t$
+#let byte = $B$
 
 // Unit abbreviations
 #let fg = $f#gram$
@@ -173,6 +174,21 @@
 #let Da = dalton
 #let ha = hectare
 #let Np = neper
+
+#let kB = $k#byte$
+#let MB = $M#byte$
+#let GB = $G#byte$
+#let TB = $T#byte$
+#let PB = $P#byte$
+#let EB = $E#byte$
+
+#let KiB = $K i#byte$
+#let MiB = $M i#byte$
+#let GiB = $G i#byte$
+#let TiB = $T i#byte$
+#let PiB = $P i#byte$
+#let EiB = $E i#byte$
+
 
 #let _dict = (
   ampere: ampere,
@@ -378,4 +394,19 @@
 
   weber: weber,
   Wb: Wb,
+
+  byte: byte,
+  kB: kB,
+  MB: MB,
+  GB: GB,
+  TB: TB,
+  PB: PB,
+  EB: EB,
+  KiB: KiB,
+  MiB: MiB,
+  GiB: GiB,
+  TiB: TiB,
+  PiB: PiB,
+  EiB: EiB,
+
 )
