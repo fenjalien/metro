@@ -1,7 +1,6 @@
 #import "defs/units.typ"
 #import "defs/prefixes.typ"
 #import "impl/impl.typ"
-// #import "parse_number.typ"
 #import "utils.typ": combine-dict
 
 #let _state-default = (
@@ -78,19 +77,11 @@
   pm: none,
   ..options
 ) = _state.display(s => {
-  return impl.qty(number, units, e: e, pm: pm, ..combine-dict(options.named(), s))
-  // assert(options.pos().len() == 0, message: "Unexpected positional arguments for qty()")
-  // let options = _combine-dict(options.named(), s)
-
-  // let result = {
-  //   let number = num(number, e: e, pm: pm, ..options)
-  //   if pm != none and e == none { number = $(number)$ }
-  //   number
-  //   sym.space.thin
-  //   unit(units, ..options)
-  // }
-  // if not options.allow-breaks { 
-  //   result = $#result$
-  // }
-  // result
+  return impl.qty(
+    number,
+    units,
+    e: e,
+    pm: pm,
+    ..combine-dict(options.named(), s)
+  )
 })
