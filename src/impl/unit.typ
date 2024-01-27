@@ -397,13 +397,32 @@
       input.power -= 0.5
       out = math.sqrt(out)
     }
+    let has-qualifier = "qualifier" in input
+
+    if has-qualifier {
+      if options.qualifier-mode == "bracket" {
+        out += "(" + input.qualifier + ")"
+      } else if options.qualifier-mode == "phrase"{
+        out += options.qualifier-phrase + input.qualifier
+      }
+    }
+
     out = math.attach(
       out,
       t: if "power" in input and input.power != 0 {
         str(input.power) 
       },
-      b: input.at("qualifier", default: none)
+      b: if has-qualifier and options.qualifier-mode == "subscript" {
+        input.qualifier
+      }
     )
+    if has-qualifier and options.qualifier-mode == "combine" {
+      out += if out.t != none {
+        "(" + input.qualifier + ")"
+      } else {
+        input.qualifier
+      }
+    }
   }
   return out
 }
