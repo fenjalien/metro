@@ -393,7 +393,7 @@
   }
 
   if "power" in input or "qualifier" in input {
-    if options.power-half-as-sqrt and "power" in input and calc.fract(input.power) == 0.5 {
+    if options.power-half-as-sqrt and "power" in input and calc.abs(calc.fract(input.power)) == 0.5 {
       input.power -= 0.5
       out = math.sqrt(out)
     }
