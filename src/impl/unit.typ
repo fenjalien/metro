@@ -369,29 +369,7 @@
   if "prefix" in input {
     out = input.prefix + out
   }
-
-  if "per" in input {
-    if options.per-mode == "power" { 
-      out += if "body" in input { 
-        options.inter-unit-product
-      } + input.per.map(p => {
-        p.power = p.at("power", default: 1) * -1
-        display(p)
-      }).join(options.inter-unit-product)
-    } else if options.per-mode == "fraction" {
-      out = math.frac(
-        out,
-        input.per.map(display).join(options.inter-unit-product)
-      )
-    } else if options.per-mode == "symbol" {
-      let denom = input.per.map(display).join(options.inter-unit-product)
-      if options.bracket-unit-denominator and input.per.len() > 1 {
-        denom = "(" + denom + ")"
-      }
-      out += options.per-symbol + denom
-    }
-  }
-
+  
   if "power" in input or "qualifier" in input {
     if options.power-half-as-sqrt and "power" in input and calc.abs(calc.fract(input.power)) == 0.5 {
       input.power -= 0.5
@@ -424,6 +402,29 @@
       }
     }
   }
+
+  if "per" in input {
+    if options.per-mode == "power" { 
+      out += if "body" in input { 
+        options.inter-unit-product
+      } + input.per.map(p => {
+        p.power = p.at("power", default: 1) * -1
+        display(p)
+      }).join(options.inter-unit-product)
+    } else if options.per-mode == "fraction" {
+      out = math.frac(
+        out,
+        input.per.map(display).join(options.inter-unit-product)
+      )
+    } else if options.per-mode == "symbol" {
+      let denom = input.per.map(display).join(options.inter-unit-product)
+      if options.bracket-unit-denominator and input.per.len() > 1 {
+        denom = "(" + denom + ")"
+      }
+      out += options.per-symbol + denom
+    }
+  }
+
   return out
 }
 

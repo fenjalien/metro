@@ -65,8 +65,8 @@
   return impl.unit(input, ..combine-dict(options.named(), s))
 })
 
-#let num(number, e: none, pm: none, ..options) = _state.display(s => {
-  return impl.num(number, e: e, pm: pm, ..combine-dict(options.named(), s))
+#let num(number, e: none, pm: none, pw: none, ..options) = _state.display(s => {
+  return impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), s))
 })
 
 
@@ -75,6 +75,7 @@
   units, 
   e: none, 
   pm: none,
+  pw: none,
   ..options
 ) = _state.display(s => {
   return impl.qty(
@@ -82,6 +83,7 @@
     units,
     e: e,
     pm: pm,
+    pw: pw,
     ..combine-dict(options.named(), s)
   )
 })

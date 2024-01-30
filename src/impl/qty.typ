@@ -6,6 +6,7 @@
   unt,
   e: none,
   pm: none,
+  pw: none,
   allow-quantity-breaks: false,
   quantity-product: sym.space.thin,
   separate-uncertainty: "bracket",
@@ -20,7 +21,7 @@
         unit(unt, ..options)
       }
     }
-    num(number, e: e, pm: pm, separate-uncertainty: separate-uncertainty, separate-uncertainty-unit: if separate-uncertainty == "repeat" { u }, ..options)
+    num(number, exponent: e, uncertainty: pm, power: pw, separate-uncertainty: separate-uncertainty, separate-uncertainty-unit: if separate-uncertainty == "repeat" { u }, ..options)
     u
   }
   return if allow-quantity-breaks {
