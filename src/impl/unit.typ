@@ -355,6 +355,8 @@
 }
 
 #let display(options, input) = {
+  let quantity-product = options.quantity-product
+  options.quantity-product = none
   display = display.with(options)
   let out = if "body" in input {
     if type(input.body) == array {
@@ -421,11 +423,12 @@
       if options.bracket-unit-denominator and input.per.len() > 1 {
         denom = "(" + denom + ")"
       }
-      out += options.per-symbol + denom
+      out += [#options.per-symbol] + [#denom]
     }
   }
 
-  return out
+  // Don't add a quantiy-prdouct if its in symbol mode and has a per 1/kg not 1 /kg
+  return if quantity-product != none and (options.per-mode != "symbol" or "body" in input) { quantity-product + h(0pt)} + out
 }
 
 #let default-options = (
@@ -482,15 +485,8 @@
     input = input.body
   }
 
-  // [#parse(options, input)\ ]
-  math.upright(display(options, parse(options, input)))
+  math.upright(math.equation(
+    display(options, parse(options, input))
+  ))
 
-  // return _unit(
-  //   unit,
-  //   combine-dict(
-  //     options.named(),
-  //     default-options,
-  //     only-update: true,
-  //   )
-  // )
 }
