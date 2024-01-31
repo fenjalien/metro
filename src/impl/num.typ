@@ -47,34 +47,6 @@
   separate-uncertainty-unit: none,
 )
 
-#let full-number-pattern = regex("^(?P<sign>[-+])?(?P<trunc>\d+)?(?:\.(?P<fract>\d+))?(?:[eE](?P<exp>[-+]?\d+))?(?:\^(?P<power>[-+]?\d+))?$")
-#let number-pattern = regex("^(?P<sign>[-+])?(?P<trunc>\d+)?(?:\.(?P<fract>\d+))?$")
-
-#let number-to-string(number) = {
-  number = if is.content(number) {
-    if is.sequence(number) {
-      number.children.map(c => c.text).join()
-    } else {
-      number.text
-    }
-  } else {
-    str(number)
-  }.replace("-", sym.minus)
-
-  let sign = if number.starts-with(sym.minus) {
-    sym.minus
-    // For some reason strings get indexed by byte? minus is unicode
-    number = number.slice(3)
-  } else if number.starts-with(sym.plus) {
-    sym.plus
-    // Plus is ascii
-    number = number.slice(1)
-  }
-
-  return (sign, number)
-}
-
-
 #let num(
   number,
   exponent: none, 
@@ -119,15 +91,6 @@
     }))
     assert(result != none, message: "Cannot match number: " + number)
     return result.captures
-    // return if full {
-    //   result.captures
-    // } else {
-    //   result = result.captures
-    //   if result.at(2) != none {
-    //     result.insert(2, options.output-decimal-marker)
-    //   }
-    //   result.map(x => if x == none { "" } else { x }).join()
-    // }
   }
 
   let group-digits(input, rev: true) = {
@@ -292,17 +255,3 @@
     }
   })
 }
-
-// #let num(
-//     number,
-//     e: none,
-//     pm: none,
-//     ..options
-//   ) = {
-  
-//   return _num(
-//     number,
-//     exponent: e,
-//     uncertainty: pm,
-//   )
-// }
