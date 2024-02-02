@@ -27,7 +27,6 @@
       separate-uncertainty-unit: if separate-uncertainty == "repeat" { u },
       ..options
     )
-    // $#quantity-product$
     u
   }
   return if allow-quantity-breaks {

@@ -66,7 +66,7 @@
 })
 
 #let num(number, e: none, pm: none, pw: none, ..options) = _state.display(s => {
-  return impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), s))
+  return (impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), s)))
 })
 
 
