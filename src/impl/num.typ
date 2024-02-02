@@ -45,7 +45,7 @@
   zero-symbol: sym.bar.h,
 
   // qty
-  separate-uncertainty: "bracket",
+  separate-uncertainty: "",
   separate-uncertainty-unit: none,
 )
 
@@ -121,6 +121,8 @@
 #let non-zero-integer-regex = regex("[^0]")
 
 #let post-process(options, integer, decimal, exponent) = {
+
+
   if options.exponent-mode != "input" {
     exponent = if exponent == none { 0 } else { int(exponent) }
     if options.exponent-mode in ("scientific", "threshold") {
