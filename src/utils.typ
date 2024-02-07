@@ -23,6 +23,6 @@
   } else if it.has("text") {
     it.text
   } else if it.has("base") { // attach
-    it.base + "^" + it.t
+    content-to-string(it.base) + "^" + content-to-string(it.t)
   }
 }

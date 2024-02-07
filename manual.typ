@@ -117,17 +117,32 @@ All options and function parameters use the following types:
 
 == Numbers
 ```typ
-#num(number, e: none, pm: none, ..options)
+#num(number, e: none, pm: none, pwr: none, ..options)
 ```
-Formats a number. Exponents and uncertainties can be given using the named parameters. All parameters listed can be given as a string, content or a number. Note that number parsing is very limited and fragile at the moment. 
+Formats a number. All parameters listed can be given as a string, content (including inside an equation)  or a number.
 
 Also note that explicitly written parts of a number when using a number type will be lost as Typst automatically parses them.
 
 #param("number", "li")[
   The number to format.
 ]
-#param("pm", "li", default: "none", "Uncertainty.")
-#param("e", "li", default: "none", "Exponent.")
+#param("pm", "li", default: "none", [
+  The uncertainty of the number.
+])
+#param("e", "li", default: "none", [
+  The exponent of the number. It can also be given as an integer in the number parameter when it is of type string or content. It should be prefixed with an "e" or "E".
+  ```example
+  #num("1e10")\
+  #num[1E10]
+  ```
+])
+#param("pwr", "li", default: "none", [
+  The power of the number, it will be attached to the top. No processing is currently done to the power. It can also be passed as an integer in the number parameter when it is of type string or content. It should be prefixed after the exponent with an "^".
+  ```example
+  #num("1^2")\
+  $num(1^2)$
+  ```
+])
 
 ```example
 #num(123)\
@@ -142,6 +157,8 @@ Also note that explicitly written parts of a number when using a number type wil
 
 
 === Options
+
+==== Parsing
 
 #param("input-decimal-markers", "Array<Literal>", default: "('\.', ',')")[
   An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the pacakge to the appropriate output marker.
@@ -171,6 +188,98 @@ Also note that explicitly written parts of a number when using a number type wil
   ```
 ]
 
+==== Post Processing
+
+#param("drop-exponent", "sw", default: "false", [
+  When `true` the exponent will be dropped (_after_ the processing of exponent)
+
+  ```example
+  #num("0.01e3")\
+  #num("0.01e3", drop-exponent: true)
+  ```
+])
+
+#param("drop-uncertainty", "sw", default: "false")[
+  When `true` the uncertainty will be dropped.
+  ```example
+  #num("0.01", pm: 0.02)\
+  #num("0.01", pm: 0.02, drop-uncertainty: true)\
+  ```
+]
+
+#param("drop-zero-decimal", "sw", default: "false")[
+  When `true`, if the decimal is zero it will be dropped before setting the minimum numbers of digits.
+
+  ```example
+  #num[2.1]\
+  #num[2.0]\
+  #metro-setup(drop-zero-decimal: true)
+  #num[2.1]\
+  #num[2.0]\
+  ```
+]
+
+#param("exponent-mode", "ch", default: "input")[
+  How to convert the number to scientific notation. Note that the calculated exponent will be added to the given exponent for all options.
+
+  / input: Does not perform any conversions, the exponent will be displayed as given. 
+  / scientific: Converts the number such that the integer will always be a single digit.
+  / fixed: Convert the number to use the exponent value given by the `fixed-exponent` option.
+  / engineering: Converts the number such that the exponent will be a multiple of three.
+  / threshold: Like the `scientific` option except it will only convert the number when the exponent would be outside the range given by the `exponent-thresholds` option.
+
+  ```example
+  #let nums = [
+    #num[0.001]\
+    #num[0.0100]\
+    #num[1200]\
+  ]
+  #nums
+  #metro-setup(exponent-mode: "scientific")
+  #nums
+  #metro-setup(exponent-mode: "engineering")
+  #nums
+  #metro-setup(exponent-mode: "fixed", fixed-exponent: 2)
+  #nums
+  ```
+  #metro-reset()
+]
+
+#param("exponent-thresholds", "Array<Integer>", default: "(-3, 3)")[
+  Used to control the range of exponents that won't trigger when the `exponent-mode` is "threshold". The first value is the minimum inclusive, and the last value is the maximum inclusive.
+
+  ```example-stack
+  #let inputs = (
+    "0.001",
+    "0.012",
+    "0.123",
+    "1",
+    "12",
+    "123",
+    "1234"
+  )
+
+  #table(
+    columns: (auto,)*3,
+    [Input], [Threshold $-3:3$], [Threshold $-2:2$],
+    ..for i in inputs {(
+      num(i),
+      num(i, exponent-mode: "threshold"),
+      num(i, exponent-mode: "threshold", exponent-thresholds: (-2, 2)),
+    )}
+  )
+  ```
+]
+
+#param("fixed-exponent", "Integer", default: "0")[
+  The exponent value to use when `exponent-mode` is "fixed". When zero, this may be used to remove scientific notation from the input.
+
+  ```example
+  #num("1.23e4")\
+  #num("1.23e4", exponent-mode: "fixed", fixed-exponent: 0)
+  ```
+]
+
 #param("minimum-decimal-digits", "Integer", default: "0")[
   May be used to pad the decimal component of a number to a given size.
   ```example
@@ -188,6 +297,8 @@ Also note that explicitly written parts of a number when using a number type wil
   #num(123, minimum-integer-digits: 4)
   ```
 ]
+
+==== Printing
 
 #param("group-digits", "ch", default: "all")[
   Whether to group digits into blocks to increase the ease of reading of numbers. Takes the values `all`, `none`, `decimal` and `integer`. Grouping can be acitivated separately for the integer and decimal parts of a number using the appropriately named values.
@@ -405,6 +516,13 @@ Generic powers can be inserted using the `tothe` and `raiseto` functions. `tothe
 #unit("radian^4.5")
 ```
 
+You can also use the `sqrt` function for half powers. If you want to maintain the square root, you must set the `power-half-as-sqrt` option.
+
+```example
+$unit(sqrt(H))$\
+#unit("sqrt(H)", power-half-as-sqrt: true)\
+```
+
 Generic qualifiers are available using the `of` function which is equivalent to using an underscore `_`. Note that when using an underscore for qualifiers in a string with a space, to capture the whole qualifier use brackets `()`.
 ```example-stack
 #unit("kilogram of(metal)")\
@@ -502,7 +620,7 @@ The separator between each unit. The default setting is a thin space: another co
 ]
 
 #param("power-half-as-sqrt", "sw", default: "false")[
-  When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root.
+  When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root. This 
   ```example
   #unit("Hz tothe(0.5)")\
   #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
@@ -571,7 +689,7 @@ The following tables show the currently supported prefixes, units and their abbr
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
-#if true {
+#if false {
 
 set figure(kind: "Table", supplement: "Table")
 

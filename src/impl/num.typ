@@ -255,7 +255,10 @@
 
   let print-mantissa = options.print-unity-mantissa or mantissa not in ("1", "")
 
-  if uncertainty != none and not options.drop-uncertainty {
+  if options.drop-uncertainty {
+    uncertainty = none
+  }
+  if uncertainty != none {
     uncertainty = analyse-number(uncertainty)
     if uncertainty.at(2) != none {
       uncertainty.insert(2, options.output-decimal-marker)
@@ -263,7 +266,11 @@
     uncertainty = spacing + if uncertainty.first() == "-" { sym.minus.plus } else { sym.plus.minus } + spacing + uncertainty.slice(1).join()
   }
 
-  if exponent != none and not options.drop-exponent {
+  if options.drop-exponent {
+    exponent = none
+  }
+
+  if exponent != none {
     exponent = analyse-number(exponent)
     if exponent.at(2) != none {
       exponent.insert(2, options.output-decimal-marker)
