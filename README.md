@@ -6,10 +6,10 @@ Metro’s name comes from Metrology, the study scientific study of measurement.
 **Bug reports, feature requests, and PRs are welcome!**
 
 ## Usage
-Requires Typst v0.8.0+.
+Requires Typst v0.10.0+.
 Use Typst's package manager:
 ```
-#import "@preview/metro:0.1.0": *
+#import "@preview/metro:0.2.0": *
 ```
 You can also download the `src` folder and import `lib.typ` and import:
 ```
@@ -24,5 +24,9 @@ See the manual for more detailed information: [manual.pdf](manual.pdf)
 - [ ] Complex numbers
 - [ ] Ranges, lists and products
 - [ ] table extensions?
-- [ ] Uncertainty and exponent parsing in numbers
-- [ ] Number post-processing like rounding and exponent modes
+- [ ] Number parsing
+  - [ ] Uncertainties
+  - [x] Exponents
+- [ ] Number post-processing 
+  - [ ] rounding
+  - [x] exponent modes

@@ -83,7 +83,7 @@
 
   #link("https://github.com/fenjalien")[fenjalien] and #link("https://github.com/Mc-Zen")[Mc-Zen] \
   https://github.com/fenjalien/typst-units \
-  Version 0.1.0
+  Version 0.2.0
 ]
 
 #outline(indent: auto)
@@ -462,7 +462,7 @@ Typsets a unit and provides full control over output format for the unit. The ty
 
 When using math Typst accepts single characters but multiple characters together are expected to be variables. So Metro defines units and prefixes which you can import to be use. #pad[
   ```typ
-  #import "@preview/metro:0.1.0": unit, units, prefixes
+  #import "@preview/metro:0.2.0": unit, units, prefixes
   #unit($units.kg m/s^2$)
   // because `units` and `prefixes` here are modules you can import what you need
   #import units: gram, metre, second
@@ -689,7 +689,7 @@ The following tables show the currently supported prefixes, units and their abbr
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
-#if false {
+#if true {
 
 set figure(kind: "Table", supplement: "Table")
 
