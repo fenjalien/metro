@@ -8,6 +8,7 @@
   retain-explicit-plus: false,
   retain-negative-zero: false,
   retain-zero-uncertainty: false,
+  parse-numbers: auto,
 
   // post-processing
   drop-exponent: false,
@@ -52,16 +53,24 @@
 
 #let analyse-number(options, number, full: false) = {
   let typ = type(number)
-  if typ == content {
-    number = content-to-string(number)
+  let result = if typ == content {
+    content-to-string(number)
   } else if typ in (int, float) {
-    number = str(number)
-  } else if typ != str {
-    panic("Unknown number format: ", number)
+    str(number)
+  } else if typ == str {
+    number
   }
+
+  if result == none {
+    if options.parse-numbers == true {
+      panic("Unknown number format: ", number)
+    }
+    return (auto,) * 5
+  }
+
   let input-decimal-markers = str(options.input-decimal-markers.join("|")).replace(sym.minus, "-").replace(sym.plus, "+")
   let basic-float = "([-+]?\d*(?:(?:" + input-decimal-markers + ")\d*)?)"
-  let result = number.replace(sym.minus, "-").replace(sym.plus, "+").match(regex({
+  result = result.replace(sym.minus, "-").replace(sym.plus, "+").replace(" ", "").match(regex({
     "^"
     // Sign
     "([-+])?"
@@ -76,14 +85,21 @@
     ")?" 
     if full {
       // Exponent
-      "(?:[eE]" + basic-float + ")?"
+      "(?:[eE](.*?))?"
       // Power
-      "(?:\^" + basic-float + ")?"
+      "(?:\^(.*?))?"
     }
     "$"
   }))
-  assert(result != none, message: "Cannot match number: " + number)
-  return result.captures
+
+  return if result == none {
+    if options.parse-numbers == true {
+      panic("Cannot match number: " + repr(number))
+    }
+    (auto,) * 5
+  } else {
+   result.captures
+  }
 }
 
 
@@ -121,7 +137,6 @@
 #let non-zero-integer-regex = regex("[^0]")
 
 #let post-process(options, integer, decimal, exponent) = {
-
 
   if options.exponent-mode != "input" {
     exponent = if exponent == none { 0 } else { int(exponent) }
@@ -189,7 +204,75 @@
     decimal += "0" * (options.minimum-decimal-digits - decimal.len())
   }
 
+  if options.group-digits in ("all", "decimal", "integer") {
+    let group-digits = group-digits.with(options)
+    if options.group-digits in ("all", "integer") and integer.len() >= options.group-minimum-digits {
+      integer = group-digits(integer)
+    }
+    if options.group-digits in ("all", "decimal") and decimal.len() >= options.group-minimum-digits {
+      decimal = group-digits(decimal, rev: false)
+    }
+  }
+
   return (integer, decimal, exponent)
+}
+
+#let process-exponent(options, exp) = {
+    let exponent = analyse-number(options, exp)
+    if exponent.all(x => x == auto) {
+      exponent = (
+        none, // sign
+        exp, // The not parsed exponent
+        none // Decimal
+      )
+    }
+
+    if exponent.at(2) != none {
+      exponent.insert(2, options.output-decimal-marker)
+    }
+    let sign = exponent.first()
+    exponent = exponent.slice(1).join()
+    if exponent != "0" or options.print-zero-exponent {
+      if sign == "-" or options.print-implicit-plus or options.print-exponent-implicit-plus {
+        exponent = if sign == "-" { sym.minus } else {sym.plus} + exponent
+      }
+      exponent = if options.output-exponent-marker != none {
+        options.output-exponent-marker + exponent
+      } else {
+        math.attach(if options.print-mantissa {options.spacing + options.exponent-product + options.spacing } + options.exponent-base, t: exponent)
+      }
+    } else {
+      exponent = none
+    }
+    return exponent
+}
+
+#let process-power(options, pwr) = {
+  let power = analyse-number(options, pwr)
+  if power.all(x => x == auto) {
+    return pwr
+  }
+
+  if power.at(2) != none {
+    power.insert(2, options.output-decimal-marker)
+  }
+  return power.join()
+}
+
+#let process-uncertainty(options, pm) = {
+  let uncertainty = analyse-number(options, pm)
+  if uncertainty.all(x => x == auto) {
+    uncertainty = (
+      none,
+      pm,
+      none
+    )
+  }
+  if uncertainty.at(2) != none {
+    uncertainty.insert(2, options.output-decimal-marker)
+  }
+  uncertainty = options.spacing + if uncertainty.first() == "-" { sym.minus.plus } else { sym.plus.minus } + options.spacing + uncertainty.slice(1).join()
+  return uncertainty
 }
 
 #let num(
@@ -203,13 +286,13 @@
   options = combine-dict(options.named(), default-options, only-update: true)
 
   let analyse-number = analyse-number.with(options)
-  let group-digits = group-digits.with(options)
 
-  let spacing = if not options.tight-spacing {
-    sym.space.thin
+
+  let (sign, integer, decimal, exp, pwr) = if options.parse-numbers != false { analyse-number(number, full: true) } else { (auto,) * 5 }
+  let parse-numbers = not (integer == auto and decimal == auto)
+  if not parse-numbers {
+    (sign, integer, decimal, exp, pwr) = (none,) * 5
   }
-
-  let (sign, integer, decimal, exp, pwr) = analyse-number(number, full: true)
   if integer == none {
     integer = ""
   }
@@ -225,16 +308,7 @@
 
   (integer, decimal, exponent) = post-process(options, integer, decimal, exponent)
 
-  if options.group-digits in ("all", "decimal", "integer") {
-    if options.group-digits in ("all", "integer") and integer.len() >= options.group-minimum-digits {
-      integer = group-digits(integer)
-    }
-    if options.group-digits in ("all", "decimal") and decimal.len() >= options.group-minimum-digits {
-      decimal = group-digits(decimal, rev: false)
-    }
-  }
-
-  let mantissa = {
+  let mantissa = if parse-numbers {
     ""
     if (integer.len() == 0 or integer != "0") or options.print-zero-integer {
       if integer.len() == 0 {
@@ -251,19 +325,21 @@
         decimal
       }
     }
+  } else {
+    number
   }
 
-  let print-mantissa = options.print-unity-mantissa or mantissa not in ("1", "")
+  options.print-mantissa = options.print-unity-mantissa or mantissa not in ("1", "")
+  
+  options.spacing = if not options.tight-spacing {
+    sym.space.thin
+  }
 
   if options.drop-uncertainty {
-    uncertainty = none
+    uncertainty = none 
   }
   if uncertainty != none {
-    uncertainty = analyse-number(uncertainty)
-    if uncertainty.at(2) != none {
-      uncertainty.insert(2, options.output-decimal-marker)
-    }
-    uncertainty = spacing + if uncertainty.first() == "-" { sym.minus.plus } else { sym.plus.minus } + spacing + uncertainty.slice(1).join()
+    uncertainty = process-uncertainty(options, uncertainty)
   }
 
   if options.drop-exponent {
@@ -271,32 +347,11 @@
   }
 
   if exponent != none {
-    exponent = analyse-number(exponent)
-    if exponent.at(2) != none {
-      exponent.insert(2, options.output-decimal-marker)
-    }
-    let sign = exponent.first()
-    exponent = exponent.slice(1).join()
-    if exponent != "0" or options.print-zero-exponent {
-      if sign == "-" or options.print-implicit-plus or options.print-exponent-implicit-plus {
-        exponent = if sign == "-" { sym.minus } else {sym.plus} + exponent
-      }
-      exponent = if options.output-exponent-marker != none {
-        options.output-exponent-marker + exponent
-      } else {
-        math.attach(if print-mantissa {spacing + options.exponent-product + spacing } + options.exponent-base, t: exponent)
-      }
-    } else {
-      exponent = none
-    }
+    exponent = process-exponent(options, exponent)
   }
 
   if power != none {
-    power = analyse-number(power)
-    if power.at(2) != none {
-      power.insert(2, options.output-decimal-marker)
-    }
-    power = power.join()
+    power = process-power(options, power)
   }
 
   let is-negative = sign == "-" and (mantissa != "0" or options.retain-negative-zero)
@@ -306,37 +361,34 @@
 
   // Return
   return math.equation({
-    if bracket-ambiguous-numbers {
-      "("
-    }
-    if options.separate-uncertainty == "bracket" and uncertainty != none {
-      "("
-    }
-    if bracket-negative-numbers {
-      "("
-    } else if is-negative {
-      sym.minus
-    } else if options.print-implicit-plus or options.print-mantissa-implicit-plus or (sign == "+" and options.retain-explicit-plus) {
-      sym.plus
-    }
-
-    if print-mantissa {
+    let output = if options.print-mantissa {
       math.attach(mantissa, t: power)
     }
 
     if bracket-negative-numbers {
-      ")"
+      output = math.lr("(" + output + ")")
+    } else if is-negative {
+      output = sym.minus + output
+    } else if options.print-implicit-plus or options.print-mantissa-implicit-plus or (sign == "+" and options.retain-explicit-plus) {
+      output = sym.plus + output
     }
+
     if options.separate-uncertainty == "repeat" and uncertainty != none {
-      options.separate-uncertainty-unit
+      output += options.separate-uncertainty-unit
     }
-    uncertainty
+
+    output += uncertainty
+
     if bracket-ambiguous-numbers {
-      ")"
+      output = math.lr("(" + output + ")")
     }
-    exponent
+
+    output += exponent
+
     if options.separate-uncertainty == "bracket" and uncertainty != none {
-      ")"
+      output = math.lr("(" + output + ")")
     }
+
+    return output
   })
 }
