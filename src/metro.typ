@@ -61,13 +61,13 @@
 })
 
 
-#let unit(input, ..options) = _state.display(s => {
-  return impl.unit(input, ..combine-dict(options.named(), s))
-})
+#let unit(input, ..options) = context {
+  return impl.unit(input, ..combine-dict(options.named(), _state.get()))
+}
 
-#let num(number, e: none, pm: none, pw: none, ..options) = _state.display(s => {
-  return (impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), s)))
-})
+#let num(number, e: none, pm: none, pw: none, ..options) = context {
+  return (impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), _state.get())))
+}
 
 
 #let qty(
@@ -77,13 +77,13 @@
   pm: none,
   pw: none,
   ..options
-) = _state.display(s => {
+) = context {
   return impl.qty(
     number,
     units,
     e: e,
     pm: pm,
     pw: pw,
-    ..combine-dict(options.named(), s)
+    ..combine-dict(options.named(), _state.get())
   )
-})
+}
