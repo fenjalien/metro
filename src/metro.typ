@@ -87,3 +87,18 @@
     ..combine-dict(options.named(), _state.get())
   )
 }
+
+
+#let qty-range(
+  left-number,
+  right-number,
+  unit,
+  ..options
+) = context {
+  return impl.qty-range(
+    left-number,
+    right-number,
+    unit,
+    ..combine-dict(options.named(), _state.get())
+  ) 
+}

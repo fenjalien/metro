@@ -36,3 +36,31 @@
   }
 
 }
+
+#let qty-range(
+  left-number,
+  right-number,
+  unit,
+  range-units: "repeat",
+  range-phrase: " to ",
+  range-open-phrase: none,
+  ..options
+) = {
+  if range-units == "repeat" {
+    if range-open-phrase == none {
+      [#qty(left-number, unit)#range-phrase#qty(right-number, unit)]
+    } else {
+      [#range-open-phrase#qty(left-number, unit)#range-phrase#qty(right-number, unit)]
+    }
+  }
+  if range-units == "bracket" {
+    if range-open-phrase == none {
+      [(#num(left-number)#range-phrase#num(right-number)) #unit_(unit)]
+    } else {
+      [(#range-open-phrase#num(left-number)#range-phrase#num(right-number)) #unit_(unit)]
+    }
+  }
+  if range-units == "single" {
+    [#num(left-number)#range-phrase#num(right-number) #unit_(unit)]
+  }
+}
