@@ -1,4 +1,5 @@
-#import "src/lib.typ": *
+#import "/src/lib.typ"
+#import lib: *
 #import units: *
 #import prefixes: *
 
@@ -10,17 +11,7 @@
     eval(
       it.text, 
       mode: "markup",
-      scope: units._dict + prefixes._dict + (
-        unit: unit,
-        num: num,
-        metro-setup: metro-setup,
-        qty: qty,
-        declare-unit: declare-unit,
-        declare-power: declare-power,
-        declare-qualifier: declare-qualifier,
-        create-prefix: create-prefix,
-        declare-prefix: declare-prefix
-      )
+      scope: dictionary(units) + dictionary(prefixes) + dictionary(lib)
     ),
     raw(it.text.replace("\\\n", "\n"), lang: "typ")
   )
@@ -667,7 +658,7 @@ $qty(.23, candela, e: 7)$\
 #param("separate-uncertainty", "ch", default: "bracket")[
   When a number has multiple parts, then the unit must apply to all parts of the number.
 
-  / bracket: Places the entire numericalpart in brackets and use a single unit symbol.
+  / bracket: Places the entire numerical part in brackets and use a single unit symbol.
   ```example
   #qty(12.3, "kg", pm: 0.4)
   ```
@@ -683,13 +674,101 @@ $qty(.23, candela, e: 7)$\
   ```
 ]
 
+== List, Products and Ranges
+
+```typ
+#num-list(..numbers-options)
+```
+
+Lists of numbers may be processed using the `num-list` function. Each number should be given as a positional argument. The numbers are formatted using `num`.
+
+```example
+#num-list(10, 30, 50, 70)
+```
+
+```typ
+#num-product(..numbers-options)
+```
+
+Runs of products can be created using the `num-product` function. It acts in the same way `num-list` does.
+
+```example
+#num-product(10, 30)
+```
+
+```typ
+#num-range(number1, number2, ..options)
+```
+
+Simple ranges of numbers can be handled using the `num-range` function. It inserts a phrase or other text between the two numbers.
+
+```example
+#num-range(10, 30)
+```
+
+
+=== Options
+
+#param("list-separator", "li", default: "[, ]")[
+  The separator to place between each item in the a list of numbers.
+
+  ```example
+  #num-list(0.1, 0.2, 0.3) \
+  #num-list(
+    list-separator: [; ],
+    0.1, 0.2, 0.3,
+  )
+  ```
+]
+
+#param("list-final-separator", "li", default: "[ and ]")[
+  The separator before the last item of a list.
+
+  ```example
+  #num-list(
+    list-final-separator: [, ],
+    0.1, 0.2, 0.3
+  ) \ 
+  #num(
+    list-separator: [ and ],
+    list-final-separator: [ and ],
+    0.1, 0.2, 0.3
+  )
+  ```
+]
+
+#param("list-pair-separator", "li", default: "[ and ]")[
+  The to use for exactly two items of a list.
+
+  ```example
+  #num-list(0.1, 0.2) \ 
+  #num-list(
+    list-pair-separator: [, and ],
+    0.1, 0.2
+  )
+  ```
+]
+
+#param("product-mode", "ch", default: "symbol")[
+  Products of numbers can be output using either a product symbol or a phrase.
+
+  / symbol: The symbol in `product-symbol` is used.
+  ```example
+  #num-product(5, 100, 2)
+  ```
+  / phrase: The phrase in `product-phrase` is used.
+  ```example
+  #num-product(5, 100, 2, product-mode: "phrase")
+  ```
+]
+
 = Meet the Units
 
 The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.
 
 
 // Turn off tables while editing docs as compiling tablex is very slow
-#if true {
+#if false {
 
 set figure(kind: "Table", supplement: "Table")
 

@@ -1,4 +1,3 @@
-#import "@preview/t4t:0.3.2": is
 #import "/src/utils.typ": combine-dict, content-to-string
 
 #let default-options = (
@@ -51,7 +50,7 @@
 )
 
 
-#let analyse-number(options, number, full: false) = {
+#let parse-number(options, number, full: false) = {
   let typ = type(number)
   let result = if typ == content {
     content-to-string(number)
@@ -136,7 +135,76 @@
 
 #let non-zero-integer-regex = regex("[^0]")
 
-#let post-process(options, integer, decimal, exponent) = {
+#let process-exponent(options, exp) = {
+    let exponent = parse-number(options, exp)
+    if exponent.all(x => x == auto) {
+      exponent = (
+        none, // sign
+        exp, // The not parsed exponent
+        none // Decimal
+      )
+    }
+
+    if exponent.at(2) != none {
+      exponent.insert(2, options.output-decimal-marker)
+    }
+    let sign = exponent.first()
+    exponent = exponent.slice(1).join()
+    if exponent != "0" or options.print-zero-exponent {
+      if sign == "-" or options.print-implicit-plus or options.print-exponent-implicit-plus {
+        exponent = if sign == "-" { sym.minus } else {sym.plus} + exponent
+      }
+      exponent = if options.output-exponent-marker != none {
+        options.output-exponent-marker + exponent
+      } else {
+        math.attach(if options.print-mantissa {options.spacing + options.exponent-product + options.spacing } + options.exponent-base, t: exponent)
+      }
+    } else {
+      exponent = none
+    }
+    return exponent
+}
+
+#let process-power(options, pwr) = {
+  let power = parse-number(options, pwr)
+  if power.all(x => x == auto) {
+    return pwr
+  }
+
+  if power.at(2) != none {
+    power.insert(2, options.output-decimal-marker)
+  }
+  return power.join()
+}
+
+#let process-uncertainty(options, pm) = {
+  let uncertainty = parse-number(options, pm)
+  if uncertainty.all(x => x == auto) {
+    uncertainty = (
+      none,
+      pm,
+      none
+    )
+  }
+  if uncertainty.at(2) != none {
+    uncertainty.insert(2, options.output-decimal-marker)
+  }
+  uncertainty = options.spacing + if uncertainty.first() == "-" { sym.minus.plus } else { sym.plus.minus } + options.spacing + uncertainty.slice(1).join()
+  return uncertainty
+}
+
+#let process(options, sign, integer, decimal, exponent, power, uncertainty) = {
+  
+  let parse-numbers = not (integer == auto and decimal == auto)
+  if not parse-numbers {
+    (sign, integer, decimal, exponent, power) = (sign, integer, decimal, exponent, power).map(x => if x != auto { x })
+  }
+  if integer == none {
+    integer = ""
+  }
+  if decimal == none {
+    decimal = ""
+  }
 
   if options.exponent-mode != "input" {
     exponent = if exponent == none { 0 } else { int(exponent) }
@@ -214,100 +282,7 @@
     }
   }
 
-  return (integer, decimal, exponent)
-}
-
-#let process-exponent(options, exp) = {
-    let exponent = analyse-number(options, exp)
-    if exponent.all(x => x == auto) {
-      exponent = (
-        none, // sign
-        exp, // The not parsed exponent
-        none // Decimal
-      )
-    }
-
-    if exponent.at(2) != none {
-      exponent.insert(2, options.output-decimal-marker)
-    }
-    let sign = exponent.first()
-    exponent = exponent.slice(1).join()
-    if exponent != "0" or options.print-zero-exponent {
-      if sign == "-" or options.print-implicit-plus or options.print-exponent-implicit-plus {
-        exponent = if sign == "-" { sym.minus } else {sym.plus} + exponent
-      }
-      exponent = if options.output-exponent-marker != none {
-        options.output-exponent-marker + exponent
-      } else {
-        math.attach(if options.print-mantissa {options.spacing + options.exponent-product + options.spacing } + options.exponent-base, t: exponent)
-      }
-    } else {
-      exponent = none
-    }
-    return exponent
-}
-
-#let process-power(options, pwr) = {
-  let power = analyse-number(options, pwr)
-  if power.all(x => x == auto) {
-    return pwr
-  }
-
-  if power.at(2) != none {
-    power.insert(2, options.output-decimal-marker)
-  }
-  return power.join()
-}
-
-#let process-uncertainty(options, pm) = {
-  let uncertainty = analyse-number(options, pm)
-  if uncertainty.all(x => x == auto) {
-    uncertainty = (
-      none,
-      pm,
-      none
-    )
-  }
-  if uncertainty.at(2) != none {
-    uncertainty.insert(2, options.output-decimal-marker)
-  }
-  uncertainty = options.spacing + if uncertainty.first() == "-" { sym.minus.plus } else { sym.plus.minus } + options.spacing + uncertainty.slice(1).join()
-  return uncertainty
-}
-
-#let num(
-  number,
-  exponent: none, 
-  uncertainty: none,
-  power: none,
-  ..options
-) = {
-
-  options = combine-dict(options.named(), default-options, only-update: true)
-
-  let analyse-number = analyse-number.with(options)
-
-
-  let (sign, integer, decimal, exp, pwr) = if options.parse-numbers != false { analyse-number(number, full: true) } else { (auto,) * 5 }
-  let parse-numbers = not (integer == auto and decimal == auto)
-  if not parse-numbers {
-    (sign, integer, decimal, exp, pwr) = (none,) * 5
-  }
-  if integer == none {
-    integer = ""
-  }
-  if decimal == none {
-    decimal = ""
-  }
-  if exp != none {
-    exponent = exp
-  }
-  if pwr != none {
-    power = pwr
-  }
-
-  (integer, decimal, exponent) = post-process(options, integer, decimal, exponent)
-
+  
   let mantissa = if parse-numbers {
     ""
     if (integer.len() == 0 or integer != "0") or options.print-zero-integer {
@@ -326,7 +301,7 @@
       }
     }
   } else {
-    number
+    options.number
   }
 
   options.print-mantissa = options.print-unity-mantissa or mantissa not in ("1", "")
@@ -353,6 +328,11 @@
   if power != none {
     power = process-power(options, power)
   }
+
+  return (options, sign, mantissa, exponent, power, uncertainty)
+}
+
+#let build(options, sign, mantissa, exponent, power, uncertainty) = {
 
   let is-negative = sign == "-" and (mantissa != "0" or options.retain-negative-zero)
 
@@ -391,4 +371,36 @@
 
     return output
   })
+}
+
+#let get-options(options) = combine-dict(options, default-options, only-update: true)
+
+#let num(
+  number,
+  exponent: none, 
+  uncertainty: none,
+  power: none,
+  options
+) = {
+
+  options = get-options(options)
+
+  let (sign, integer, decimal, exp, pwr) = if options.parse-numbers != false {
+    parse-number(options, number, full: true)
+  } else {
+    (auto,) * 5
+  }
+  options.number = number
+  
+  if exp not in (none, auto) {
+    exponent = exp
+  }
+  if pwr not in (none, auto) {
+    power = pwr
+  }
+
+  let (options, sign, mantissa, exponent, power, uncertainty) = process(options, sign, integer, decimal, exponent, power, uncertainty)
+
+  return build(options, sign, mantissa, exponent, power, uncertainty)
+
 }

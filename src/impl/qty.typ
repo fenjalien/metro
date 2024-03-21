@@ -23,9 +23,10 @@
       exponent: e,
       uncertainty: pm,
       power: pw,
-      separate-uncertainty: separate-uncertainty,
-      separate-uncertainty-unit: if separate-uncertainty == "repeat" { u },
-      ..options
+      options.named() + (
+        separate-uncertainty: separate-uncertainty,
+        separate-uncertainty-unit: if separate-uncertainty == "repeat" { u }
+      )
     )
     u
   }

@@ -1,3 +1,3 @@
-#import "/src/lib.typ": unit, metro-setup, num, qty
+#import "/src/lib.typ": *
 #set page(width: auto, height: auto, margin: 1cm)
 

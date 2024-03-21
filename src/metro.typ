@@ -2,6 +2,7 @@
 #import "defs/prefixes.typ"
 #import "impl/impl.typ"
 #import "utils.typ": combine-dict
+#import "dependencies.typ": strfmt
 
 #let _state-default = (
   units: units._dict,
@@ -66,7 +67,7 @@
 }
 
 #let num(number, e: none, pm: none, pw: none, ..options) = context {
-  return (impl.num(number, exponent: e, uncertainty: pm, power: pw, ..combine-dict(options.named(), _state.get())))
+  return (impl.num(number, exponent: e, uncertainty: pm, power: pw, combine-dict(options.named(), _state.get())))
 }
 
 
@@ -85,5 +86,36 @@
     pm: pm,
     pw: pw,
     ..combine-dict(options.named(), _state.get())
+  )
+}
+
+#let num-list(
+  ..numbers-options,
+) = context {
+  assert(numbers-options.pos().len() > 1, message: strfmt("Expected at least two numbers, got {} instead!", numbers-options.pos().len()))
+  return impl.num-list(
+    numbers-options.pos(),
+    combine-dict(numbers-options.named(), _state.get())
+  )
+}
+
+#let num-product(
+  ..numbers-options,
+) = context {
+  assert(numbers-options.pos().len() > 1, message: strfmt("Expected at least two numbers, got {} instead!", numbers-options.pos().len()))
+  return impl.num-product(
+    numbers-options.pos(),
+    combine-dict(numbers-options.named(), _state.get())
+  )
+}
+
+#let num-range(
+  n1,
+  n2,
+  ..options,
+) = context {
+  return impl.num-range(
+    n1, n2,
+    combine-dict(options.named(), _state.get())
   )
 }
