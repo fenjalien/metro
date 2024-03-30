@@ -63,7 +63,7 @@
 
 
 #let unit(input, ..options) = context {
-  return impl.unit(input, ..combine-dict(options.named(), _state.get()))
+  return impl.unit(input, combine-dict(options.named(), _state.get()))
 }
 
 #let num(number, e: none, pm: none, pw: none, ..options) = context {
@@ -99,12 +99,36 @@
   )
 }
 
+#let qty-list(
+  ..numbers-options,
+) = context {
+  assert(numbers-options.pos().len() > 2, message: strfmt("Expected at least two numbers and a unit, got {} instead!", numbers-options.pos().len()))
+  let numbers = numbers-options.pos()
+  return impl.qty-list(
+    unit: numbers.pop(),
+    numbers,
+    combine-dict(numbers-options.named(), _state.get()),
+  )
+}
+
 #let num-product(
   ..numbers-options,
 ) = context {
   assert(numbers-options.pos().len() > 1, message: strfmt("Expected at least two numbers, got {} instead!", numbers-options.pos().len()))
   return impl.num-product(
     numbers-options.pos(),
+    combine-dict(numbers-options.named(), _state.get())
+  )
+}
+
+#let qty-product(
+  ..numbers-options,
+) = context {
+  assert(numbers-options.pos().len() > 1, message: strfmt("Expected at least two numbers and a unit, got {} instead!", numbers-options.pos().len()))
+  let numbers = numbers-options.pos()
+  return impl.qty-product(
+    unit: numbers.pop(),
+    numbers,
     combine-dict(numbers-options.named(), _state.get())
   )
 }
@@ -116,6 +140,18 @@
 ) = context {
   return impl.num-range(
     n1, n2,
+    combine-dict(options.named(), _state.get())
+  )
+}
+
+#let qty-range(
+  n1,
+  n2,
+  unit,
+  ..options,
+) = context {
+  return impl.qty-range(
+    n1, n2, unit: unit,
     combine-dict(options.named(), _state.get())
   )
 }

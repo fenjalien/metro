@@ -204,14 +204,12 @@
   quantity-product: none
 )
 
-#let unit(unit, ..options) = {
+#let get-options(options) = combine-dict(options, default-options, only-update: true)
+
+#let unit(unit, options) = {
   let input = unit
   assert(type(input) in (str, content), message: "Expected string or content input type, got " + type(input) + " instead.")
-  options = combine-dict(
-    options.named(),
-    default-options,
-    only-update: true,
-  )
+  options = get-options(options)
 
   if is.str(input) {
     // Converts the string input into math content

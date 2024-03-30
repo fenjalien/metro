@@ -1,4 +1,6 @@
 #import "num.typ"
+#import "qty.typ"
+#import "unit.typ" as unit_
 #import "/src/utils.typ": combine-dict
 
 
@@ -28,27 +30,37 @@
   range-units: "repeat"
 )
 
-#let process-numbers(typ, numbers, joiner, options) = {
+#let process-numbers(typ, numbers, joiner, options, unit: none) = {
   let exponents = options.at(typ + "-exponents")
+  let units = options.at(typ + "-units")
+
+  if unit != none {
+    unit = unit_.unit(unit, options + qty.get-options(options))
+  }
+
   let exponent = if exponents != "individual" {
     let first = num.parse-number(num.get-options(options), numbers.first(), full: true)
-    
+
     num.process(num.get-options(options), ..first, none).at(3)
-    
+
     options.fixed-exponent = int(first.at(3))
     options.exponent-mode = "fixed"
     options.drop-exponent = true
   }
 
-  let result = joiner(numbers.map(n => num.num(n, options)))
-  if exponents == "combine-bracket" { 
+  let repeated-unit = if units == "repeat" { unit }
+  let result = joiner(numbers.map(n => num.num(n, options) + repeated-unit))
+  
+  if exponents == "combine-bracket" or (unit != none and units == "bracket") { 
     result = math.lr(options.at(typ + "-open-bracket") + result + options.at(typ + "-close-bracket"))
   }
-  return result + exponent
+
+  return result + exponent + if repeated-unit == none { unit }
 }
 
-#let num-list(numbers, options) = {
-  options = combine-dict(options, default-options)
+
+#let qty-list(numbers, unit: none, options) = {
+  options = combine-dict(options,  default-options)
   return process-numbers(
     "list",
     numbers,
@@ -60,13 +72,15 @@
       options.list-final-separator
       last
     },
-    options
+    options,
+    unit: unit
   )
-
 }
 
-#let num-product(numbers, options) = {
-  options = combine-dict(options, default-options, only-update: true)
+#let num-list = qty-list.with(unit: none) 
+
+#let qty-product(numbers, options, unit: none) = {
+  options = combine-dict(options, default-options)
   return process-numbers(
     "product",
     numbers,
@@ -75,13 +89,15 @@
     } else {
       numbers.join(options.product-phrase)
     },
-    options
+    options,
+    unit: unit
   )
-
 }
 
-#let num-range(n1, n2, options) = {
-  options = combine-dict(options, default-options, only-update: true)
+#let num-product = qty-product.with(unit: none)
+
+#let qty-range(n1, n2, options, unit: none) = {
+  options = combine-dict(options, default-options)
 
   return process-numbers(
     "range",
@@ -90,6 +106,9 @@
       options.range-open-phrase
       numbers.join(options.range-phrase)
     },
-    options
+    options,
+    unit: unit
   )
 }
+
+#let num-range = qty-range.with(unit: none)

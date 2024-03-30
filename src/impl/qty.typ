@@ -1,5 +1,15 @@
 #import "num.typ": num
 #import "unit.typ": unit as unit_
+#import "/src/utils.typ": combine-dict
+
+
+#let default-options = (
+  allow-quantity-breaks: false,
+  quantity-product: sym.space.thin,
+  separate-uncertainty: "bracket",
+)
+
+#let get-options(options) = combine-dict(options, default-options)
 
 #let qty(
   number,
@@ -7,30 +17,27 @@
   e: none,
   pm: none,
   pw: none,
-  allow-quantity-breaks: false,
-  quantity-product: sym.space.thin,
-  separate-uncertainty: "bracket",
   ..options
 ) = {
+  options = get-options(options.named())
+
   let result = {
     let u = unit_(
       unit,
-      quantity-product: quantity-product,
-      ..options
+      options
     )
     num(
       number,
       exponent: e,
       uncertainty: pm,
       power: pw,
-      options.named() + (
-        separate-uncertainty: separate-uncertainty,
-        separate-uncertainty-unit: if separate-uncertainty == "repeat" { u }
+      options + (
+        separate-uncertainty-unit: if options.separate-uncertainty == "repeat" { u }
       )
     )
     u
   }
-  return if allow-quantity-breaks {
+  return if options.allow-quantity-breaks {
     result
   } else {
     box(result)
