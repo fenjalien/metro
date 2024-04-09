@@ -152,7 +152,7 @@ Also note that explicitly written parts of a number when using a number type wil
 ==== Parsing
 
 #param("input-decimal-markers", "Array<Literal>", default: "('\.', ',')")[
-  An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the pacakge to the appropriate output marker.
+  An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the package to the appropriate output marker.
 ]
 
 #param("retain-explicit-decimal-marker", "sw", default: "false")[
@@ -1148,7 +1148,7 @@ page(
 
 = Creating 
 
-The following functions can be used to define cutom units, prefixes, powers and qualifiers that can be used with the `unit` function.
+The following functions can be used to define custom units, prefixes, powers and qualifiers that can be used with the `unit` function.
 
 == Units
 ```typ
