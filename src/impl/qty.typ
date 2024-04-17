@@ -17,9 +17,9 @@
   e: none,
   pm: none,
   pw: none,
-  ..options
+  options
 ) = {
-  options = get-options(options.named())
+  options = get-options(options)
 
   let result = {
     let u = unit_(

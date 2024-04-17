@@ -18,6 +18,14 @@
   fixed-exponent: 0,
   minimum-integer-digits: 0,
   minimum-decimal-digits: 0,
+  round-direction: "nearest",
+  round-half: "up",
+  round-minimum: 0,
+  round-mode: "none",
+  round-pad: true,
+  round-precision: 2,
+  round-zero-positive: true,
+  uncertainty-round-direction: "nearest",
 
   // Printing
   bracket-negative-numbers: false,
@@ -29,10 +37,10 @@
   group-digits: "all",
   group-minimum-digits: 5,
   group-separator: sym.space.thin,
-  output-close-uncertainty: ")",
+  output-close-uncertainty: sym.paren.r,
   output-decimal-marker: ".",
   output-exponent-marker: none,
-  output-open-uncertainty: "(",
+  output-open-uncertainty: sym.paren.l,
   print-implicit-plus: false,
   print-exponent-implicit-plus: false,
   print-mantissa-implicit-plus: false,
@@ -193,6 +201,10 @@
   return uncertainty
 }
 
+#let round-digit(digit, last-digit, options) = {
+  str()
+}
+
 #let process(options, sign, integer, decimal, exponent, power, uncertainty) = {
   
   let parse-numbers = not (integer == auto and decimal == auto)
@@ -257,6 +269,18 @@
         integer += decimal.slice(0, i)
         decimal = decimal.slice(i)
       }
+    }
+  }
+
+  if options.round-mode != none {
+    if options.round-mode == "places"  {
+      if decimal.len() > options.round-precision {
+        // let round-direction = 
+        decimal = decimal.slice(0, options.round-precision)
+      } else if decimal.len() < options.round-precision and options.round-pad {
+        decimal += "0" * (options.round-precision - decimal.len())
+      }
+
     }
   }
 

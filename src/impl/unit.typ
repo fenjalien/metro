@@ -1,4 +1,4 @@
-#import "@preview/t4t:0.3.2": is
+#import "/src/dependencies.typ": is
 #import "/src/utils.typ": combine-dict, content-to-string
 
 // NULL unicode character as a marker
@@ -211,7 +211,7 @@
   assert(type(input) in (str, content), message: "Expected string or content input type, got " + type(input) + " instead.")
   options = get-options(options)
 
-  if is.str(input) {
+  if type(input) == str {
     // Converts the string input into math content
     // The first replace adds quote marks around words attached to underscores otherwise math doesn't capture the qualifier correctly.
     // Second replace removes slashes with pers as they allow no numerator to be present.

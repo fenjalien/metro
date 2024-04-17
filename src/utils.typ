@@ -1,5 +1,3 @@
-#import "@preview/t4t:0.3.2": is
-
 // Joins two dictionaries together by inserting `new` values into `old`.
 // When only-update is true, values will only be inserted if they keys exist in old.
 #let combine-dict(new, old, only-update: false) = {
