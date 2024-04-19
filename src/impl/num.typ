@@ -280,7 +280,6 @@
       } else if decimal.len() < options.round-precision and options.round-pad {
         decimal += "0" * (options.round-precision - decimal.len())
       }
-
     }
   }
 
@@ -336,16 +335,13 @@
 
   if options.drop-uncertainty {
     uncertainty = none 
-  }
-  if uncertainty != none {
+  } else if uncertainty != none {
     uncertainty = process-uncertainty(options, uncertainty)
   }
 
   if options.drop-exponent {
     exponent = none
-  }
-
-  if exponent != none {
+  } else if exponent != none {
     exponent = process-exponent(options, exponent)
   }
 
@@ -381,7 +377,7 @@
       output += options.separate-uncertainty-unit
     }
 
-    output += uncertainty
+    output += math.equation(uncertainty)
 
     if bracket-ambiguous-numbers {
       output = math.lr("(" + output + ")")
