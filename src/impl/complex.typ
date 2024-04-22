@@ -1,5 +1,5 @@
 #import "/src/utils.typ": combine-dict
-#import "num.typ"
+#import "num/num.typ"
 #import "unit.typ" as unit_
 
 #let default-options = (

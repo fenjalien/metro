@@ -1,4 +1,4 @@
-#import "num.typ": num
+#import "num/num.typ": num
 #import "unit.typ": unit as unit_
 #import "/src/utils.typ": combine-dict
 
