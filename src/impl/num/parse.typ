@@ -1,6 +1,8 @@
 #import "/src/utils.typ": content-to-string
 
-#let parse-number(options, number, full: false) = {
+// full: (sign, integer, decimal, exponent, power)
+// (sign, integer, decimal)
+#let parse(options, number, full: false) = {
   let typ = type(number)
   let result = if typ == content {
     content-to-string(number)
@@ -14,7 +16,7 @@
     if options.parse-numbers == true {
       panic("Unknown number format: ", number)
     }
-    return (auto,) * 5
+    return (auto,) * if full { 5 } else { 3 }
   }
 
   let input-decimal-markers = str(options.input-decimal-markers.join("|")).replace(sym.minus, "-").replace(sym.plus, "+")
@@ -45,8 +47,16 @@
     if options.parse-numbers == true {
       panic("Cannot match number: " + repr(number))
     }
-    (auto,) * 5
+    (auto,) * if full { 5 } else { 3 }
   } else {
    result.captures
   }
+}
+
+#let to-float(options, number) = {
+  let (sign, integer, decimal) = parse(options, number)
+  if auto in (sign, integer, decimal) {
+    panic("Cannot create a float from ", number, " as parsing failed.")
+  }
+  return float(sign + integer + "." + decimal)
 }

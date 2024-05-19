@@ -1,7 +1,7 @@
 #import "/src/utils.typ": combine-dict, content-to-string
 
 #import "process.typ": process
-#import "parse.typ": parse-number
+#import "parse.typ": parse, to-float
 
 #let default-options = (
   // parsing
@@ -123,7 +123,7 @@
   options = get-options(options)
 
   let (sign, integer, decimal, exp, pwr) = if options.parse-numbers != false {
-    parse-number(options, number, full: true)
+    parse(options, number, full: true)
   } else {
     (auto,) * 5
   }

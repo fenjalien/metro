@@ -39,7 +39,7 @@
   }
 
   let exponent = if exponents != "individual" {
-    let first = num.parse-number(num.get-options(options), numbers.first(), full: true)
+    let first = num.parse(num.get-options(options), numbers.first(), full: true)
 
     num.process(num.get-options(options), ..first, none).at(3)
 

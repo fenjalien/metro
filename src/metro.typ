@@ -171,7 +171,7 @@
   )
 }
 
-#let complex-num(
+#let complex(
   real,
   imag,
   ..unit-options,
@@ -185,7 +185,7 @@
     panic(strfmt("Expected only one or none positional argument, got {}", unit.len()))
   }
 
-  return impl.complex-num(
+  return impl.complex(
     real,
     imag,
     unit,

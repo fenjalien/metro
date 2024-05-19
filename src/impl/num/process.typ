@@ -1,4 +1,4 @@
-#import "parse.typ": parse-number
+#import "parse.typ": parse
 
 #let group-digits(options, input, rev: true) = {
   let (first, other) = if options.digit-group-size != 3 {
@@ -33,7 +33,7 @@
 
 
 #let process-exponent(options, exp) = {
-    let exponent = parse-number(options, exp)
+    let exponent = parse(options, exp)
     if exponent.all(x => x == auto) {
       exponent = (
         none, // sign
@@ -63,7 +63,7 @@
 }
 
 #let process-power(options, pwr) = {
-  let power = parse-number(options, pwr)
+  let power = parse(options, pwr)
   if power.all(x => x == auto) {
     return pwr
   }
@@ -75,7 +75,7 @@
 }
 
 #let process-uncertainty(options, pm) = {
-  let uncertainty = parse-number(options, pm)
+  let uncertainty = parse(options, pm)
   if uncertainty.all(x => x == auto) {
     uncertainty = (
       none,

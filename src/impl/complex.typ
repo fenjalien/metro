@@ -1,7 +1,8 @@
 #import "/src/utils.typ": combine-dict
-#import "/src/defs/units.typ": rad
 #import "num/num.typ"
+#import "angle.typ": is-angle, parse as parse-angle, to-number as angle-to-number
 #import "unit.typ" as unit_
+#import "qty.typ"
 
 #let default-options = (
   complex-angle-unit: "degrees",
@@ -13,42 +14,100 @@
   print-complex-unity: false
 )
 
-#let get-options(options) = combine-dict(options, default-options + num.default-options, only-update: true)
+// I've kind of given up with the combine-dict rules, I need to sort this out another time.
+#let get-options(options) = combine-dict(options, default-options + num.default-options + unit_.default-options + qty.default-options, only-update: true)
 
 
-#let parse(options, imag) = {
-  if options.parse-numbers == false and options.complex-mode == "input" {
-    panic("Cannot identify the complex mode without parsing the number!")
+#let parse(options, real, imag) = {
+  if options.parse-numbers == false {
+    if options.complex-mode == "input" {
+      panic("Cannot identify the complex mode without parsing the number!")
+    }
+    return (options.complex-mode, real, imag)
   }
 
   let imag-type = type(imag)
 
-  if imag-type == angle or (imag-type == str and imag.ends-with(regex("deg|rad"))) or (imag-type == content and repr(imag.func()) == "sequence" and imag.children.last() in (math.deg, rad)) {
-    "is polar"
+  let input-mode = if is-angle(imag) {
+    "polar"
   } else {
-    "is number"
+    "cartesian"
   }
+
+  if options.complex-mode != "input" and  input-mode != options.complex-mode {
+    real = num.to-float(options, real)
+    (real, imag) = if input-mode == "cartesian" {
+      // output mode is polar
+      imag = num.to-float(options, imag)
+      (
+        calc.sqrt(
+          calc.pow(real, 2) + calc.pow(imag, 2)
+        ),
+        calc.atan2(real, imag)
+      )
+    } else {
+      imag = angle-to-number(imag)
+      // output mode is cartesian
+      (
+        real * calc.cos(imag),
+        real * calc.sin(imag)
+      )
+    }
+  }
+
+  let mode = if options.complex-mode == "input" { input-mode } else { options.complex-mode }
+
+  return (
+      mode,
+      num.parse(options, real),
+      if options.complex-mode == "input" and input-mode == "cartesian" or options.complex-mode == "cartesian" {
+        num.parse(options, imag)
+      } else {
+        parse-angle(options, imag)
+      }
+    )
 }
 
-#let complex-num(real, imag, unit, options) = {
+#let complex(real, imag, unit, options) = {
   options = get-options(options)
-  return parse(options, imag)
+  let (mode, real, imag) = parse(options, real, imag)
+  let is-polar = mode == "polar"
 
-  if options.complex-mode == "polar" {
-    return repr(imag)
+  let real-mantissa = {
+    let (options, sign, mantissa, ..rest) = num.process(options, ..real, none, none, none)
+    mantissa
+    real = num.build(options, sign, mantissa, ..rest)
   }
-
-  imag = num.num(imag, options)
-
-  imag = (imag, options.output-complex-root)
-  if options.complex-root-position != "after-number" {
-    imag.rev()
-  }
-  imag = imag.join()
 
   return math.equation({
-    num.num(real, options)
-    sym.plus
-    imag
+    if is-polar or real-mantissa != "0" {
+      real
+    }
+
+    if is-polar {
+      options.complex-symbol-angle
+      num.build(..num.process(options, ..imag, none, none, none))
+      if options.complex-angle-unit == "degrees" {
+        options.complex-symbol-degree
+      }
+    } else {
+      let (options, sign, mantissa, ..rest) = num.process(options, ..imag, none, none, none)
+
+      options.print-implicit-plus = real-mantissa != "0"
+
+      mantissa = if not options.print-complex-unity and mantissa in ("1", "") {
+        options.output-complex-root  
+      } else if options.complex-root-position == "after-number" {
+        mantissa + options.output-complex-root
+      } else {
+        options.output-complex-root + mantissa
+      }
+
+      num.build(options, sign, mantissa, ..rest)
+    }
+
+    if unit != none {
+      unit_.unit(unit, options)
+    }
   })
 }
