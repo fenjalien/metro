@@ -192,3 +192,12 @@
     combine-dict(unit-options.named(), _state.get())
   )
 }
+
+#let ang(
+  ..ang-options,
+) = context {
+  return impl.ang(
+    ang-options.pos(),
+    combine-dict(ang-options.named(), _state.get())
+  )
+}
