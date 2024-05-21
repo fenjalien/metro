@@ -20,13 +20,13 @@ See the manual for more detailed information: [manual.pdf](manual.pdf)
 
 ## Future Features (in no particular order)
 
-- [ ] Angles
-- [ ] Complex numbers
-- [ ] Ranges, lists and products
+- [x] Angles
+- [x] Complex numbers
+- [x] Ranges, lists and products
 - [ ] table extensions?
 - [ ] Number parsing
   - [ ] Uncertainties
   - [x] Exponents
-- [ ] Number post-processing 
-  - [ ] rounding
+- [x] Number post-processing 
+  - [x] rounding
   - [x] exponent modes
