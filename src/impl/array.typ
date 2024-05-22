@@ -5,29 +5,32 @@
 
 
 #let default-options = (
-  list-close-bracket: sym.paren.r,
-  list-exponents: "individual",
   list-final-separator: [ and ],
-  list-independent-prefix: false,
-  list-open-bracket: sym.paren.l,
   list-pair-separator: [ and ],
   list-separator: [, ],
-  list-units: "repeat",
-  product-close-bracket: sym.paren.r,
-  product-exponents: "individual",
-  product-independent-prefix: false,
+  
   product-mode: "symbol",
-  product-open-bracket: sym.paren.l,
   product-phrase: [ by ],
   product-symbol: sym.times,
-  product-units: "repeat",
-  range-close-bracket: sym.paren.r,
-  range-exponents: "individual",
-  range-independent-prefix: false,
-  range-open-bracket: sym.paren.l,
+
   range-open-phrase: none,
   range-phrase: [ to ],
-  range-units: "repeat"
+
+  list-close-bracket: sym.paren.r,
+  list-open-bracket: sym.paren.l,
+  product-close-bracket: sym.paren.r,
+  product-open-bracket: sym.paren.l,
+  range-close-bracket: sym.paren.r,
+  range-open-bracket: sym.paren.l,
+  // list-independent-prefix: false,
+  // product-independent-prefix: false,
+  // range-independent-prefix: false,
+  list-exponents: "individual",
+  product-exponents: "individual",
+  range-exponents: "individual",
+  list-units: "repeat",
+  product-units: "repeat",
+  range-units: "repeat",
 )
 
 #let process-numbers(typ, numbers, joiner, options, unit: none) = {
@@ -40,12 +43,13 @@
 
   let exponent = if exponents != "individual" {
     let first = num.parse(num.get-options(options), numbers.first(), full: true)
+    if first.at(3) != none {
+      num.process(num.get-options(options), ..first, none).at(3)
 
-    num.process(num.get-options(options), ..first, none).at(3)
-
-    options.fixed-exponent = int(first.at(3))
-    options.exponent-mode = "fixed"
-    options.drop-exponent = true
+      options.fixed-exponent = int(first.at(3))
+      options.exponent-mode = "fixed"
+      options.drop-exponent = true
+    }
   }
 
   let repeated-unit = if units == "repeat" { unit }

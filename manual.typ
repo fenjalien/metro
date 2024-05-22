@@ -3,17 +3,15 @@
 #import units: *
 #import prefixes: *
 
-#import "@preview/tablex:0.0.4": tablex, hlinex, vlinex
-
 #let example(it, dir) = {
-  set text(size: 1.2em)
+  set text(size: 1.25em)
   let (a, b) = (
     eval(
-      it.text, 
+      "#set text(font: \"Linux Libertine\")\n" + it.text, 
       mode: "markup",
       scope: dictionary(units) + dictionary(prefixes) + dictionary(lib)
     ),
-    raw(it.text.replace("\\\n", "\n"), lang: "typ")
+    raw(it.text.replace("\\\n", "\\\n"), lang: "typ")
   )
   block(
     breakable: false,
@@ -30,6 +28,7 @@
       )
     )
   )
+  metro-reset()
 }
 
 #show raw.where(lang: "example"): it => {
@@ -43,6 +42,9 @@
 #show link: set text(blue)
 
 #let param(term, t, default: none, description) = {
+  if type(term) != array {
+    term = (term,)
+  }
   let types = (
     ch: "Choice",
     nu: "Number",
@@ -56,25 +58,33 @@
     if t == "ch" {
       default = repr(default)
     }
-    default = align(top + right, [(default: #raw(default))])
+    default = [(default: #raw(default))]
+    // default = align(top + right, [(default: #raw(default))])
   }
 
   t = text(types.at(t, default: t), font: "Source Code Pro")
-
-  stack(
-    dir: ltr, 
-    [*#term*#h(0.6em, weak: true)#t], 
-    default
-  )
-  block(pad(description, left: 2em), above: 0.65em)
+  block(breakable: false, {
+    align(horizon, 
+      stack(
+        dir: ltr, 
+        term.map(t => strong(t + "\n")).join(),
+        h(0.6em),
+        t,
+        1fr,
+        default
+      )
+    )
+    block(pad(description, left: 2em), above: 0.65em)
+  })
 }
 
 #align(center)[
   #text(16pt)[Metro]
 
   #link("https://github.com/fenjalien")[fenjalien] and #link("https://github.com/Mc-Zen")[Mc-Zen] \
-  https://github.com/fenjalien/typst-units \
-  Version 0.2.0
+  https://github.com/fenjalien/metro \
+  Version 0.3.0 \
+  Requires Typst 0.11+
 ]
 
 #outline(indent: auto)
@@ -84,6 +94,7 @@
 #set heading(numbering: "1.1")
 
 = Introduction
+#qty-list(2, 3, "T")
 
 The Metro package aims to be a port of the Latex package siunitx. It allows easy typesetting of numbers and units with options. This package is very early in development and many features are missing, so any feature requests or bug reports are welcome!
 
@@ -106,6 +117,7 @@ All options and function parameters use the following types:
 / `Choice`: Takes a limited number of choices, which are described separately for each option. Input type is a string.
 / `Number`: Takes a float or integer.
 
+#pagebreak()
 == Numbers
 ```typ
 #num(number, e: none, pm: none, pwr: none, ..options)
@@ -148,7 +160,6 @@ Also note that explicitly written parts of a number when using a number type wil
 
 
 === Options
-
 ==== Parsing
 
 #param("input-decimal-markers", "Array<Literal>", default: "('\.', ',')")[
@@ -268,6 +279,117 @@ Also note that explicitly written parts of a number when using a number type wil
   ```example
   #num("1.23e4")\
   #num("1.23e4", exponent-mode: "fixed", fixed-exponent: 0)
+  ```
+]
+
+#param("round-mode", "ch", default: "none")[
+  How the package should round numerical input.
+
+  / none: No rounding is performed.
+  ```example
+  #num(1.23456)\
+  #num(14.23)
+  ```
+  / figures: Round to a number of significant figures.
+  ```example
+  #metro-setup(round-mode: "figures")
+  #num(1.23456)\
+  #num(14.23)
+  ```
+  / places: Round to a number of decimal places.
+  ```example
+  #metro-setup(round-mode: "places")
+  #num(1.23456)\
+  #num(14.23)
+  ```
+]
+
+#param("round-precision", "Integer", default: "2")[
+  Controls the number of significant figures or decimal places to round to.
+  ```example
+  #metro-setup(round-mode: "places", round-precision: 3)
+  #num(1.23456)\
+  #num(14.23)\
+  #metro-setup(round-mode: "figures", round-precision: 3)
+  #num(1.23456)\
+  #num(14.23)\
+  ```
+]
+
+#param("round-pad", "sw", default: "true")[
+  Controls when rounding may "extend" a short number to more digits (or figures).
+  ```example
+  #metro-setup(round-mode: "figures", round-precision: 4)
+  #num(12.3)\
+  #num(12.3, round-pad: false)\
+  ```
+]
+
+#param("round-direction", "ch", default: "nearest")[
+  Determines which direction a value is rounded toward.
+
+  / nearest: Gives the common outcome that values round depending on whether the preceding digit is greater or less than 5.
+  ```example
+  #metro-setup(round-mode: "places")
+  #num(0.054)\
+  #num(0.046)
+  ```
+  / down: Values are always rounded down. It may be thought of as "truncation".
+  ```example
+  #metro-setup(round-mode: "places", round-direction: "down")
+  #num(0.054)\
+  #num(0.046)
+  ```
+  / up: Values are always rounded up.
+  ```example
+  #metro-setup(round-mode: "places", round-direction: "up")
+  #num(0.054)\
+  #num(0.046)
+  ```
+]
+
+#param("round-half", "ch", default: "up")[
+  Determines how numbers that are exactly half are rounded to the the `"nearest"`.
+
+  / up: The number is rounded up.
+  ```example
+  #metro-setup(round-mode: "figures", round-precision: 1)
+  #num(0.055)\
+  #num(0.045)\
+  ```
+  / even: The number is rounded to the nearest even part.
+  ```example
+  #metro-setup(
+    round-mode: "figures",
+    round-precision: 1,
+    round-half: "even"
+  )
+  #num(0.055)\
+  #num(0.045)\
+  ```
+]
+
+#param("round-minimum", "nu", default: "0")[
+  There are cases in which rounding will result in the number reaching zero. It may be desirable to show results as below a threshold value. This can be achieved by setting this option to the threshold value. There will be no effect when rounding to a number of significant figures as it is not possible to obtain the value zero in these cases.
+
+  ```example
+  #metro-setup(round-mode: "places")
+  #num(0.0055)\
+  #num(0.0045)\
+  #metro-setup(round-minimum: 0.01)
+  #num(0.0055)\
+  #num(0.0045)\
+  ```
+]
+
+#param("round-zero-positive", "sw", default: "true")[
+  When rounding negative numbers to a fixed number of places, a zero value may result. Usually this is expressed as an unsigned value, but in some cases retaining the negative sign may be desirable. This behaviour can be controlled using this option.
+
+  ```example
+  #metro-setup(round-mode: "places")
+  #num(-0.001)\
+  #metro-setup(round-zero-positive: false)
+  #num(-0.001)
   ```
 ]
 
@@ -443,6 +565,7 @@ Also note that explicitly written parts of a number when using a number type wil
   The symbol to use when `zero-decimal-as-symbol` is `true`.
 ]
 
+#pagebreak()
 == Units
 
 ```typ
@@ -620,6 +743,7 @@ The separator between each unit. The default setting is a thin space: another co
 
 #metro-reset()
 
+#pagebreak()
 == Quantities
 
 ```typ
@@ -640,9 +764,11 @@ $qty(.23, candela, e: 7)$\
 #param("allow-quantity-breaks", "sw", default: "false")[
   Controls whether the combination of the number and unit can be split across lines.
   ```example-stack
-  #box(width: 4.5cm)[Some filler text #qty(10, "m")]\
-  #metro-setup(allow-quantity-breaks: true)
-  #box(width: 4.5cm)[Some filler text #qty(10, "m")]
+  #box(width: 3.25cm)[
+    Some filler text #qty(10, "m")\
+    #metro-setup(allow-quantity-breaks: true)
+    Some filler text #qty(10, "m")
+  ]
   ```
 ]
 
@@ -674,6 +800,7 @@ $qty(.23, candela, e: 7)$\
   ```
 ]
 
+#pagebreak()
 == List, Products and Ranges
 
 ```typ
@@ -706,6 +833,14 @@ Simple ranges of numbers can be handled using the `num-range` function. It inser
 #num-range(10, 30)
 ```
 
+The above list, product and range functions also have a `qty` variant where the last positional argument will be considered as a unit.
+
+```example
+#qty-list(10, 30, 45, metre)\
+#qty-product(10, 30, 45, metre)\
+#qty-range(10, 30, metre)\
+```
+
 
 === Options
 
@@ -729,7 +864,7 @@ Simple ranges of numbers can be handled using the `num-range` function. It inser
     list-final-separator: [, ],
     0.1, 0.2, 0.3
   ) \ 
-  #num(
+  #num-list(
     list-separator: [ and ],
     list-final-separator: [ and ],
     0.1, 0.2, 0.3
@@ -761,15 +896,292 @@ Simple ranges of numbers can be handled using the `num-range` function. It inser
   #num-product(5, 100, 2, product-mode: "phrase")
   ```
 ]
+#param("product-symbol", "li", default: "sym.times")[
+  The symbol to use when `product-mode` is `"symbol"`.
 
+  ```example
+  #num-product(5, 100, 2, product-symbol: sym.dot.c)
+  ```
+]
+
+#param("product-phrase", "li", default: "[ by ]")[
+  The phrase to use when `product-mode` is `"phrase"`.
+
+  ```example
+  #num-product(5, 100, 2, product-symbol: [ BY ])
+  ```
+]
+
+#param("range-open-phrase", "li", default: "none")[
+  The phrase to open ranges with.
+
+  ```example
+  #num-range(10, 12)\
+  #num-range(5, 100, range-open-phrase: "from ")
+  ```
+]
+
+#param("range-phrase", "li", default: "[ to ]")[
+  The word or symbol to be inserted between the two entries of the range.
+
+  ```example
+  #num-range(5, 100)\
+  #num-range(5, 100, range-phrase: sym.dash)\
+  ```
+]
+
+#param(("list-exponents", "product-exponents", "range-exponents"), "ch", default: "individual")[
+  Controls how lists, products and ranges can be "compressed" by combining the exponent parts. 
+
+  / individual: Leaves the exponent with the matching value.
+  ```example
+  #num-list("5e3", "7e3", "9e3", "1e4")\
+  #num-product("5e3", "7e3", "9e3", "1e4")\
+  #num-range("5e3", "7e3")
+  ```
+  / combine: The first exponent entry is taken and applied to all other entries, with the exponent itself placed at the end.
+  ```example
+  #metro-setup(
+    list-exponents: "combine",
+    product-exponents: "combine",
+    range-exponents: "combine",
+  )
+  #num-list("5e3", "7e3", "9e3", "1e4")\
+  #num-product("5e3", "7e3", "9e3", "1e4")\
+  #num-range("5e3", "7e3")
+  ```
+  / combine-bracket: Like `"combine"` but the list, product or range is wrapped in brackets, with the exponent outside.
+  ```example
+  #metro-setup(
+    list-exponents: "combine-bracket",
+    product-exponents: "combine-bracket",
+    range-exponents: "combine-bracket",
+  )
+  #num-list("5e3", "7e3", "9e3", "1e4")\
+  #num-product("5e3", "7e3", "9e3", "1e4")\
+  #num-range("5e3", "7e3")
+  ```
+]
+#param(("list-units", "product-units", "range-units"), "ch", default: "repeat")[
+  Determines how `qty-list`, `qty-product` and `qty-range` functions print units.
+
+  / repeat: Each number will be printed with a unit.
+  ```example
+  #qty-list(2, 4, 6, 8, tesla)\
+  #qty-product(2, 4, metre)\
+  #qty-range(2, 4, degreeCelsius)
+  ```
+
+  / single: The unit will only be placed at the end of the collection.
+  ```example
+  #metro-setup(
+    list-units: "single",
+    product-units: "single",
+    range-units: "single",
+  )
+  #qty-list(2, 4, 6, 8, tesla)\
+  #qty-product(2, 4, metre)\
+  #qty-range(2, 4, degreeCelsius)
+  ```
+
+  / bracket: Like `"single"` except brackets are placed around the collection.
+  ```example
+  #metro-setup(
+    list-units: "bracket",
+    product-units: "bracket",
+    range-units: "bracket",
+  )
+  #qty-list(2, 4, 6, 8, tesla)\
+  #qty-product(2, 4, metre)\
+  #qty-range(2, 4, degreeCelsius)
+  ```
+  // no it doesn't, at least not yet
+  // The option `product-units` also offers the settings *bracket-power* and *power*.
+  // ```example
+  // #qty-product(2, 4, metre, product-units: "bracket-power")\
+  // #qty-product(2, 4, metre, product-units: "power")\
+  // ```
+]
+
+#param(("list-open-bracket", "product-open-bracket", "range-open-bracket"), "li", default: "sym.paren.l")[
+  The opening bracket to be used when the collection is placed in brackets.
+]
+
+#param(("list-close-bracket", "product-close-bracket", "range-close-bracket"), "li", default: "sym.paren.r")[
+  The closing bracket to be used when the collection is placed in brackets.
+]
+
+#pagebreak()
+
+== Complex Numbers
+```typ
+#complex(real, imag, ..unit-options)
+```
+
+Typesets the complex number, the first positional argument will be the real component and the second will be the coefficient of the imaginary component. If the second argument is either of the #link("https://typst.app/docs/reference/layout/angle/")[angle type] or ends in "deg" or "rad", the complex number will be considered to be in polar form and the first argument will be the radius. A unit can be optionally given as the third positional argument.
+
+Note that when giving the angle as an angle type in radains, it will be output in degrees by default. This is due to angle types being unit agnostic. This behaviour can be changed with the `complex-angle-unit` option.
+
+=== Options
+
+#param("complex-mode", "ch", default: "input")[
+  The format in which complex values are printed.
+
+  / input: The complex value is printed as-given.
+  ```example
+  #complex(1, 1)\
+  #complex(1, 45deg)\
+  ```
+  / cartesian: The output will be formatted in Cartesian form.
+  ```example
+  #metro-setup(complex-mode: "cartesian")
+  #complex(1, 1)\
+  #complex(1, 45deg, round-mode: "places")\
+  ```
+  / polar: The output will be formatted in polar form.
+  ```example
+  #metro-setup(complex-mode: "polar")
+  #complex(1, 1, round-mode: "places", round-pad: false)\
+  #complex(1, 45deg)\
+  ```
+]
+
+#param("output-complex-root", "li", default: "math.upright(\"i\")")[
+  The output complex root symbol.
+
+  ```example
+  #complex(1, 2, output-complex-root: "i")\
+  #complex(1, 2, output-complex-root: "j")\
+  ```
+]
+
+#param("complex-root-position", "ch", default: "after-number")[
+  The position of the complex root can be adjusted to place it either before or after the associated numeral in a complex number by using this option.
+
+  ```example
+  #complex(67, -0.9)\
+  #complex(67, -0.9, complex-root-position: "before-number")\
+  ```
+]
+
+#param("complex-angle-unit", "ch", default: "degrees")[
+  The output unit of the angle component of a complex number in polar form.
+  ```example
+  #complex(1, 1rad, ohm)\
+  #complex(1, 1rad, complex-angle-unit: "radians", ohm)
+  ```
+]
+
+#param("complex-symbol-angle", "li", default: "sym.angle")[
+  The symbol used to denote the angle of a complex number in polar form.
+  ```example
+  #complex(1, 1deg, ohm, complex-symbol-angle: math.upright("A"))
+  ```
+]
+
+#param("complex-symbol-degree", "li", default: "sym.degree")[
+  The symbol use for the units of degrees of a complex number in polar form.
+  ```example
+  #complex(1, 1deg, ohm, complex-symbol-degree: math.upright("d"))
+  ```
+]
+
+#param("print-complex-unity", "sw", default: "false")[
+  When the complex part of a number is exactly 1, it is possible to either print or suppress the value.
+
+  ```example
+  #complex(0, 1, ohm)\
+  #complex(0, 1, ohm, print-complex-unity: true)\
+  ```
+]
+
+#pagebreak()
+
+== Angles
+```typ
+#ang(..ang-options)
+```
+
+Typsets angles. The angle can be given as a single decimal number or 2 to 3 positional arguments of degrees, minutes and second, which is called the "arc format" in this document.
+
+```example
+#ang(10)\
+#ang(12.3)\
+#ang("4,5")\
+#ang(1, 2, 3)\
+#ang(0, 0, 1)\
+#ang(10, 0, 0)\
+#ang(0, 1)\
+```
+
+=== Options
+
+#param("angle-mode", "ch", default: "input")[
+  The format in which angles are printed.
+
+  / input: The angle is printed as given.
+  ```example
+  #ang(2.67)\
+  #ang(2, 3, 4)\
+  ```
+  / arc: The output will be formatted as an arc (degrees/minutes/seconds).
+  ```example
+  #metro-setup(angle-mode: "arc")
+  #ang(2.67)\
+  #ang(2,3,4)
+  ```
+  / decimal: The output will be formatted as a decimal value.
+  ```example
+  #metro-setup(angle-mode: "decimal")
+  #ang(2.67)\
+  #ang(2,3,4)
+  ```
+]
+
+#param("number-angle-product", "li", default: "none")[
+  The separator between the number and angle symbol. This is independent of the related `quantity-product` option used by the `qty` function.
+
+  ```example
+  #ang(2.67)\
+  #ang(2.67, number-angle-product: sym.space)
+  ```
+]
+
+#param("angle-separator", "li", default: "none")[
+  The separation of the different parts of an angle when printed in arc format.
+  ```example
+  #ang(6, 7, 6.5)\
+  #ang(6, 7, 6.5, angle-separator: sym.space)
+  ```
+]
+
+#param("angle-symbol-degree", "li", default: "sym.degree")[
+  The symbol to use for the degree unit of an arc angle.
+]
+
+#param("angle-symbol-minute", "li", default: "units.arcminute")[
+  The symbol to use for the minute unit of an arc angle.
+]
+
+#param("angle-symbol-second", "li", default: "sym.arcsecond")[
+  The symbol to use for the second unit of an arc angle.
+
+  ```example
+  #metro-setup(
+    angle-symbol-degree: math.upright("d"),
+    angle-symbol-minute: math.upright("m"),
+    angle-symbol-second: math.upright("s"),
+  )
+  #ang(6, 7, 6.5)
+  ```
+]
+
+#pagebreak()
 = Meet the Units
 
 The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.
 
-
-// Turn off tables while editing docs as compiling tablex is very slow
-#if false {
-
+#{
 set figure(kind: "Table", supplement: "Table")
 
 let generate(..units) = {
@@ -786,12 +1198,12 @@ let generate(..units) = {
 let headers = ([Unit], [Command], [Symbol])
 
 figure(
-  tablex(
+  table(
     columns: 3,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     ..headers,
-    hlinex(),
+    table.hline(),
     ..generate(
       "ampere",
       "candela",
@@ -801,18 +1213,18 @@ figure(
       "mole",
       "second"
     ),
-    hlinex(),
+    table.hline(),
   ),
   caption: [SI base units.]
 )
 
 figure(
-  tablex(
+  table(
     columns: 6,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     ..headers * 2,
-    hlinex(),
+    table.hline(),
     ..generate(
       "becquerel", "newton",
       ("degree Celsius", "degreeCelsius"), "ohm",
@@ -826,18 +1238,18 @@ figure(
       "katal", "watt",
       "lux", "weber"
     ),
-    hlinex()
+    table.hline()
   ),
   caption: [Coherent derived units in the SI with special names and symbols.]
 )
 
 figure(
-  tablex(
+  table(
     columns: 3,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     ..headers,
-    hlinex(),
+    table.hline(),
     ..generate(
       "astronomicalunit",
       "bel",
@@ -856,33 +1268,33 @@ figure(
       "neper",
       "tonne"
     ),
-    hlinex(),
+    table.hline(),
   ),
   caption: [Non-SI units accepted for use with the International System of Units.]
 )
 
 figure(
-  tablex(
+  table(
     columns: 3,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     ..headers,
-    hlinex(),
+    table.hline(),
     ..generate(
       "byte",
     ),
-    hlinex(),
+    table.hline(),
   ),
   caption: [Non-SI units.]
 )
 
 figure(
-  tablex(
+  table(
     columns: 8,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     ..([Prefix], [Command], [Symbol], [$10^x$]) * 2,
-    hlinex(),
+    table.hline(),
     ..((
       ("quecto", -30), ("deca", 1),
       ("ronto", -27), ("hecto", 2),
@@ -897,17 +1309,17 @@ figure(
       ("centi", -2), ("ronna", 27),
       ("deci", -1), ("quetta", 30)
     ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
-    hlinex(),
+    table.hline(),
   ),
   caption: [SI prefixes]
 )
 figure(
-  tablex(
+  table(
     columns: 4,
-    auto-lines: false,
-    hlinex(),
+    stroke: none,
+    table.hline(),
     [Prefix], [Command], [Symbol], [$2^x$],
-    hlinex(),
+    table.hline(),
     ..((
       ("kibi", 10),
       ("mebi", 20),
@@ -918,7 +1330,7 @@ figure(
       ("zebi", 70),
       ("yobi", 80),
     ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
-    hlinex(),
+    table.hline(),
   ),
   caption: [Binary prefixes]
 )
@@ -938,12 +1350,12 @@ page(
     caption: [Unit abbreviations],
     stack(
       dir: ltr,
-      tablex(
+      table(
         columns: 3,
-        auto-lines: false,
-        hlinex(),
+        stroke: none,
+        table.hline(),
         [Unit], [Abbreviation], [Symbol],
-        hlinex(),
+        table.hline(),
         ..ge(
           "femtogram", "fg",
           "picogram", "pg",
@@ -953,7 +1365,7 @@ page(
           "gram", "g",
           "kilogram", "kg"
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "picometre", "pm",
           "nanometre", "nm",
@@ -964,7 +1376,7 @@ page(
           "metre", "m",
           "kilometre", "km",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "attosecond", "as",
           "femtosecond", "fs",
@@ -974,7 +1386,7 @@ page(
           "millisecond", "ms",
           "second", "s",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "femtomole", "fmol",
           "picomole", "pmol",
@@ -984,7 +1396,7 @@ page(
           "mole", "mol",
           "kilomole", "kmol",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "picoampere", "pA",
           "nanoampere", "nA",
@@ -993,7 +1405,7 @@ page(
           "ampere", "A",
           "kiloampere", "kA",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "microlitre", "uL",
           "millilitre", "mL",
@@ -1001,13 +1413,13 @@ page(
           "hectolitre", "hL",
         )
       ),
-      tablex(
+      table(
         columns: 3,
-        auto-lines: false,
-        vlinex(),
-        hlinex(),
+        stroke: none,
+        table.vline(),
+        table.hline(),
         [Unit], [Abbreviation], [Symbol],
-        hlinex(),
+        table.hline(),
         ..ge(
           "millihertz", "mHz",
           "hertz", "Hz",
@@ -1016,27 +1428,27 @@ page(
           "gigahertz", "GHz",
           "terahertz", "THz",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "millinewton", "mN",
           "newton", "N",
           "kilonewton", "kN",
           "meganewton", "MN",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "pascal", "Pa",
           "kilopascal", "kPa",
           "megapascal", "MPa",
           "gigapascal", "GPa",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "milliohm", "mohm",
           "kilohm", "kohm",
           "megohm", "Mohm",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "picovolt", "pV",
           "nanovolt", "nV",
@@ -1045,7 +1457,7 @@ page(
           "volt", "V",
           "kilovolt", "kV",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "watt", "W",
           "nanowatt", "nW",
@@ -1055,14 +1467,14 @@ page(
           "megawatt", "MW",
           "gigawatt", "GW",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "joule", "J",
           "microjoule", "uJ",
           "millijoule", "mJ",
           "kilojoule", "kJ",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "electronvolt", "eV",
           "millielectronvolt", "meV",
@@ -1071,18 +1483,18 @@ page(
           "gigaelectronvolt", "GeV",
           "teraelectronvolt", "TeV",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "kilowatt hour", "kWh"
         )
       ),
-      tablex(
+      table(
         columns: 3,
-        auto-lines: false,
-        vlinex(),
-        hlinex(),
+        stroke: none,
+        table.vline(),
+        table.hline(),
         [Unit], [Abbreviation], [Symbol],
-        hlinex(),
+        table.hline(),
         ..ge(
           "farad", "F",
           "femtofarad", "fF",
@@ -1091,7 +1503,7 @@ page(
           "microfarad", "uF",
           "millifarad", "mF",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "henry", "H",
           "femtohenry", "fH",
@@ -1100,14 +1512,14 @@ page(
           "millihenry", "mH",
           "microhenry", "uH",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "coulomb", "C",
           "nanocoulomb", "nC",
           "millicoulomb", "mC",
           "microcoulomb", "uC",
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "kelvin", "K",
           "decibel", "dB",
@@ -1125,7 +1537,7 @@ page(
           "steradian", "sr",
           "weber", "Wb"
         ),
-        hlinex(),
+        table.hline(),
         ..ge(
           "kilobyte", "kB",
           "megabyte", "MB",
@@ -1145,7 +1557,6 @@ page(
   )
 )
 }
-
 = Creating 
 
 The following functions can be used to define cutom units, prefixes, powers and qualifiers that can be used with the `unit` function.
