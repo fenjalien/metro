@@ -6,3 +6,6 @@
 #let numlist = num-list
 #let numproduct = num-product
 #let numrange = num-range
+#let qtylist = qty-list
+#let qtyproduct = qty-product
+#let qtyrange = qty-range
