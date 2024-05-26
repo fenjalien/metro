@@ -94,7 +94,6 @@
 #set heading(numbering: "1.1")
 
 = Introduction
-#qty-list(2, 3, "T")
 
 The Metro package aims to be a port of the Latex package siunitx. It allows easy typesetting of numbers and units with options. This package is very early in development and many features are missing, so any feature requests or bug reports are welcome!
 
@@ -103,28 +102,64 @@ Metro's name comes from Metrology, the study scientific study of measurement.
 = Usage
 #set pad(left: 1em)
 
-== Options
+Typst 0.11.0+ is required. You can import the package using the package manager:
+```typ
+#import "@preview/metro:0.3.0": *
+```
+Or download the `src` folder and import `lib.typ`:
+```typ
+#import "/src/lib.typ": *
+```
 
+// The package provdides the functions:
+//   - `#ang(angle, ..options)`
+//   - `#num(number, ..options)`
+//   - `#unit(unit, ..options)`
+//   - `#qty(number, unit, ..options)`
+//   - `#num-list(numbers, ..options)`
+//   - `#num-product(numbers, ..options)`
+//   - `#num-range(number1, number2, ..options)`
+//   - `#qty-list(numbers, unit, ..options)`
+//   - `#qty-product(numbers, unit, ..options)`
+//   - `#qty-range(number1, number2, unit, ..options)`
+//   - `#complex(number, ..options)`
+//   - `#metro-setup(..options)`
+
+== Options
 ```typ
 #metro-setup(..options)
 ```
 
-Options for Metro's can be modified by using the `metro-setup` function. It takes an argument sink and saves any named parameters found. The options for each function are specified in their respective sections.
+All provided functions in this package have options that can control how they parse, process and print items. They can normally be given as keyword arguments directly to the function, but this can get tedious if you want the same options to apply throughout the document. You can instead use the `metro-setup` function. Any options given as keyword arguments will then be applied to the relevant subsequent functions in the document.
 
-All options and function parameters use the following types:
-/ `Literal`: Takes the given value directly. Input type is a string, content and sometimes a number.
-/ `Switch`: On-off switches. Input type is a boolean.
-/ `Choice`: Takes a limited number of choices, which are described separately for each option. Input type is a string.
-/ `Number`: Takes a float or integer.
+All options and function arguments will use the following types:
+/ Literal: Takes the given value directly. Input type is a string, content and sometimes a number.
+/ Switch: On-off switches. Input type is a boolean.
+/ Choice: Takes a limited number of choices, which are described separately for each option. Input type is a string.
+/ Number: A float or integer.
+/ Integer: An integer.
+
 
 #pagebreak()
 == Numbers
 ```typ
 #num(number, e: none, pm: none, pwr: none, ..options)
 ```
-Formats a number. All parameters listed can be given as a string, content (including inside an equation)  or a number.
 
-Also note that explicitly written parts of a number when using a number type will be lost as Typst automatically parses them.
+Parses, processes then prints a number. The number can be given as an integer, a float, a string, as some plain content or math content! The different forms of input should extend to all other functions with arguments that take a number, they will be parsed all the same. However it should be noted that:
+  - When giving a number as an integer or float with an exponent in the number, it will not be seen by Metro (e.g. `3.4e3` will be seen as `3400` and not "3.4 with an exponent of 3").
+  - When using one of Metro's function within math mode, Typst considers dashes as subtraction symbols which breaks identifier names. So any options with dashes will not be able to be used when in math mode.
+
+```example
+#num(123)\
+#num("1234")\
+#num[12345]\
+$num(0.123)$\
+#num("0,1234")\
+#num[.12345]\
+#num(e: -4)[3.45]\
+#num("-1", e: 10, print-unity-mantissa: false)
+```
 
 #param("number", "li")[
   The number to format.
@@ -133,7 +168,7 @@ Also note that explicitly written parts of a number when using a number type wil
   The uncertainty of the number.
 ])
 #param("e", "li", default: "none", [
-  The exponent of the number. It can also be given as an integer in the number parameter when it is of type string or content. It should be prefixed with an "e" or "E".
+  The exponent of the number. It can also be given as an integer in the number argument when it is of type string or content. It should be prefixed with an "e" or "E".
   ```example
   #num("1e10")\
   #num[1E10]
@@ -147,23 +182,12 @@ Also note that explicitly written parts of a number when using a number type wil
   ```
 ])
 
-```example
-#num(123)\
-#num("1234")\
-#num[12345]\
-#num(0.123)\
-#num("0,1234")\
-#num[.12345]\
-#num(e: -4)[3.45]\
-#num("-1", e: 10, print-unity-mantissa: false)
-```
-
 
 === Options
 ==== Parsing
 
 #param("input-decimal-markers", "Array<Literal>", default: "('\.', ',')")[
-  An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the pacakge to the appropriate output marker.
+  An array of characters that indicate the sepration between the integer and decimal parts of a number. More than one inupt decimal marker can be used, it will be converted by the package to the appropriate output marker.
 ]
 
 #param("retain-explicit-decimal-marker", "sw", default: "false")[
@@ -187,6 +211,19 @@ Also note that explicitly written parts of a number when using a number type wil
   ```example
   #num[-0]\
   #num(retain-negative-zero: true)[-0]
+  ```
+]
+
+#param("parse-numbers", "sw", default: "auto")[
+  Turns the entire parsing system on and off. It allows the use of arbitrary values in numbers. When the option is `auto`, numbers will be attempt to be parsed but will quietly stop if it fails to do so. The number will then be printed as given. If the option is `false`, no parsing will even be attempted. If `true`, Metro will panic if the number cannot be parsed.
+
+  ```example
+  $num(sqrt(3))$\
+  #metro-setup(parse-numbers: false)
+  $num(sqrt(4))$\
+  #metro-setup(parse-numbers: true)
+  // Will panic:
+  // $num(sqrt(5))$\
   ```
 ]
 
@@ -574,7 +611,7 @@ Also note that explicitly written parts of a number when using a number type wil
 
 Typsets a unit and provides full control over output format for the unit. The type passed to the function can be either a string or some math content.
 
-When using math Typst accepts single characters but multiple characters together are expected to be variables. So Metro defines units and prefixes which you can import to be use. #pad[
+When using the function in math mode, Typst accepts single characters but multiple characters together are expected to be variables. So Metro defines units and prefixes which be can imported to be used. #pad[
   ```typ
   #import "@preview/metro:0.2.0": unit, units, prefixes
   #unit($units.kg m/s^2$)
@@ -841,6 +878,7 @@ The above list, product and range functions also have a `qty` variant where the 
 #qty-range(10, 30, metre)\
 ```
 
+The above function names cannot be used in math mode, instead equivalently named functions are provided that have the dash removed (e.g. `num-list` and `numlist`).
 
 === Options
 
@@ -1559,7 +1597,7 @@ page(
 }
 = Creating 
 
-The following functions can be used to define cutom units, prefixes, powers and qualifiers that can be used with the `unit` function.
+The following functions can be used to define custom units, prefixes, powers and qualifiers that can be used with the `unit` function.
 
 == Units
 ```typ
