@@ -16,7 +16,7 @@ You can also download the `src` folder and import `lib.typ` and import:
 #import "src/lib.typ": *
 ```
 
-See the manual for more detailed information: [manual.pdf](manual.pdf)
+See the manual for more detailed information: [manual.pdf](https://github.com/fenjalien/metro/releases/latest/download/manual.pdf)
 
 ## Future Features (in no particular order)
 
