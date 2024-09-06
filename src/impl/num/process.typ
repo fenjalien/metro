@@ -122,6 +122,9 @@
     } else if integer == "0" {
       let i = decimal.position(non-zero-integer-regex)
       let l = 3 - calc.rem(i, 3)
+      while decimal.len() < i+l {
+        decimal = decimal + "0" 
+      }
       integer = decimal.slice(i, i+l)
       decimal = decimal.slice(i+l)
       exponent -= i+l
