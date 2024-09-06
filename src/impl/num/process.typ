@@ -207,9 +207,15 @@
     }
     
     let len = integer.len() + decimal.len()
+    let check-add-zeros = false
     if options.round-precision < len {
-      (integer, decimal) = round-digits(integer, decimal, options.round-precision + if integer.len() < options.round-precision { decimal.position(non-zero-integer-regex) })
-    } else if len < options.round-precision and options.round-pad {
+      (integer, decimal) = round-digits(integer, decimal, options.round-precision)
+      // Do we have too few significant digits now? (e.g. round 1.0009 to three 
+      // significant digits -> return 1.00 instead of 1)
+      let len = integer.len() + decimal.len()
+      check-add-zeros = true
+    } 
+    if len < options.round-precision and (check-add-zeros or options.round-pad) {
       decimal += "0" * (options.round-precision - len)
     }
   }
