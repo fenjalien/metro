@@ -4,7 +4,7 @@
 // SI units
 #let ampere = $A$
 #let candela = $c d$
-#let kelvin = $kelvin$
+#let kelvin = $upright(K)$
 #let kilogram = $k#gram$
 #let metre = $m$
 #let meter = metre
@@ -14,7 +14,7 @@
 
 // Derived units
 #let becquerel = $B q$
-#let degreeCelsius = $degree.c$
+#let degreeCelsius = $upright(degree C)$
 #let coulomb = $C$
 #let farad = $F$
 #let gray = $G y$
@@ -25,7 +25,7 @@
 #let katal = $k a t$
 #let lux = $l x$
 #let newton = $N$
-#let ohm = $ohm$
+#let ohm = $Omega$
 #let pascal = $P a$
 #let radian = $r a d$
 #let siemens = $S$
@@ -223,7 +223,7 @@
 
   degree: sym.degree,
 
-  degreeCelsius: sym.degree.c,
+  degreeCelsius: degreeCelsius,
 
   coulomb: coulomb,
   C: coulomb,
