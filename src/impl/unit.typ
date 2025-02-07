@@ -1,4 +1,4 @@
-#import "/src/dependencies.typ": is
+#import "/src/dependencies.typ": test
 #import "/src/utils.typ": combine-dict, content-to-string
 
 // NULL unicode character as a marker
@@ -14,7 +14,7 @@
   parse = parse.with(options)
   let func = repr(input.func())
   let out = (:)
-  
+
   return if func == "attach" {
     if "t" in input.fields() {
       let power = float(content-to-string(input.t))
@@ -50,7 +50,7 @@
       body: if func == "text" {
         input.text
       } else {
-        input.body  
+        input.body
       }
     )
   } else if func == "lr" {
@@ -81,7 +81,7 @@
           out = (:)
         }
         if body not in (NULL-before, NULL-after) {
-          out.body = body 
+          out.body = body
         }
       }
       if "power" in child {
@@ -126,7 +126,7 @@
   if "prefix" in input {
     out = input.prefix + out
   }
-  
+
   if "power" in input or "qualifier" in input {
     if options.power-half-as-sqrt and "power" in input and calc.abs(calc.fract(input.power)) == 0.5 {
       input.power -= 0.5
@@ -145,7 +145,7 @@
     out = math.attach(
       out,
       t: if "power" in input and input.power != 0 {
-        str(input.power) 
+        str(input.power)
       },
       b: if has-qualifier and options.qualifier-mode == "subscript" {
         input.qualifier
@@ -161,8 +161,8 @@
   }
 
   if "per" in input {
-    if options.per-mode == "power" { 
-      out += if "body" in input { 
+    if options.per-mode == "power" {
+      out += if "body" in input {
         options.inter-unit-product
       } + input.per.map(p => {
         p.power = p.at("power", default: 1) * -1
@@ -218,12 +218,12 @@
     input = eval(
       input.replace(regex("_(\w+)|(?:(?:_|of)\((.+?)\))"), (m) => {
         let c = m.captures
-        "_\"" + if c.first() == none { 
+        "_\"" + if c.first() == none {
           c.last()
         } else {
           c.first()
         } + "\""
-      }).replace("/", " per ").trim(), 
+      }).replace("/", " per ").trim(),
       mode: "math",
       scope: options.units + options.prefixes + options.powers + options.qualifiers + (
         per: math.class("binary", "per"),
@@ -234,7 +234,7 @@
   }
 
   // When math content is passed directly it comes as an equation which we normally don't want to step into. If the equation is not exactly a known unit or prefix step into it.
-  if is.elem(math.equation, input) and not input in options.units.values() and not input in options.prefixes.values() {
+  if test.is-elem(math.equation, input) and not input in options.units.values() and not input in options.prefixes.values() {
     input = input.body
   }
 
