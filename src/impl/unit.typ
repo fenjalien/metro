@@ -113,6 +113,9 @@
   let quantity-product = options.quantity-product
   options.quantity-product = none
   display = display.with(options)
+  if input == none {
+    input = (:)
+  }
   let out = if "body" in input {
     if type(input.body) == array {
       input.body.map(display).filter(x => x != none).join(options.inter-unit-product)
