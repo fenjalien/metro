@@ -94,6 +94,9 @@
 
 #let exponent-mode(options, integer, decimal, exponent) = {
   exponent = if exponent == none { 0 } else { int(exponent) }
+  if integer.position(non-zero-integer-regex) == none and decimal.position(non-zero-integer-regex) == none {
+    return (integer, decimal, exponent)
+  }
   if options.exponent-mode in ("scientific", "threshold") {
     let i = integer.position(non-zero-integer-regex)
     if i != none and i < integer.len() {
@@ -103,7 +106,7 @@
         decimal = integer.slice(i+1) + decimal
         integer = integer.slice(i, i+1)
       }
-    } else if integer.len() > 1 or integer == "0" {
+    } else if integer.len() > 1 or (integer == "0" and decimal.len() > 0) {
       let i = decimal.position(non-zero-integer-regex)
       let exp = exponent - i - 1
       if check-exponent-thresholds(options, exp) {
@@ -122,6 +125,9 @@
     } else if integer == "0" {
       let i = decimal.position(non-zero-integer-regex)
       let l = 3 - calc.rem(i, 3)
+      if decimal.len() < i+l {
+        decimal += "0" * ((i + l) - decimal.len())
+      }
       integer = decimal.slice(i, i+l)
       decimal = decimal.slice(i+l)
       exponent -= i+l
