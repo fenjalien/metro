@@ -18,7 +18,7 @@
     }
     return (auto,) * if full { 5 } else { 3 }
   }
-
+  
   let input-decimal-markers = str(options.input-decimal-markers.join("|")).replace(sym.minus, "-").replace(sym.plus, "+")
   let basic-float = "([-+]?\d*(?:(?:" + input-decimal-markers + ")\d*)?)"
   result = result.replace(sym.minus, "-").replace(sym.plus, "+").replace(" ", "").match(regex({

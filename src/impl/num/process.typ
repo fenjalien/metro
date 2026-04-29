@@ -34,6 +34,7 @@
 
 #let process-exponent(options, exp) = {
     let exponent = parse(options, exp)
+    let exp = [#exp]
     if exponent.all(x => x == auto) {
       exponent = (
         none, // sign

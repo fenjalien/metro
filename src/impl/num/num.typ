@@ -11,7 +11,6 @@
   retain-negative-zero: false,
   retain-zero-uncertainty: false,
   parse-numbers: auto,
-
   // post-processing
   drop-exponent: false,
   drop-uncertainty: false,
@@ -29,7 +28,6 @@
   round-precision: 2,
   round-zero-positive: true,
   // uncertainty-round-direction: "nearest",
-
   // Printing
   bracket-negative-numbers: false,
   digit-group-size: 3,
@@ -54,7 +52,6 @@
   bracket-ambiguous-numbers: true,
   zero-decimal-as-symbol: false,
   zero-symbol: sym.bar.h,
-
   // qty
   separate-uncertainty: "",
   separate-uncertainty-unit: none,
@@ -79,31 +76,35 @@
     }
 
     if bracket-negative-numbers {
-      output = math.lr("(" + output + ")")
+      output = $(output)$
     } else if is-negative {
       output = sym.minus + output
-    } else if options.print-implicit-plus or options.print-mantissa-implicit-plus or ("+" in sign and options.retain-explicit-plus) {
+    } else if (
+      options.print-implicit-plus
+        or options.print-mantissa-implicit-plus
+        or ("+" in sign and options.retain-explicit-plus)
+    ) {
       output = sym.plus + output
     }
 
     if "<" in sign {
-      output = math.equation(sym.lt + output)
+      output = $<output$
     }
 
     if options.separate-uncertainty == "repeat" and uncertainty != none {
       output += options.separate-uncertainty-unit
     }
 
-    output += math.equation(uncertainty)
+    output += $uncertainty$
 
     if bracket-ambiguous-numbers {
-      output = math.lr("(" + output + ")")
+      output = $(output)$
     }
 
-    output += exponent
+    output += $exponent$
 
     if options.separate-uncertainty == "bracket" and uncertainty != none {
-      output = math.lr("(" + output + ")")
+      output = $(output)$
     }
 
     return output
@@ -114,12 +115,11 @@
 
 #let num(
   number,
-  exponent: none, 
+  exponent: none,
   uncertainty: none,
   power: none,
-  options
+  options,
 ) = {
-
   options = get-options(options)
 
   let (sign, integer, decimal, exp, pwr) = if options.parse-numbers != false {
@@ -128,7 +128,7 @@
     (auto,) * 5
   }
   options.number = number
-  
+
   if exp not in (none, auto) {
     exponent = exp
   }
@@ -136,8 +136,15 @@
     power = pwr
   }
 
-  let (options, sign, mantissa, exponent, power, uncertainty) = process(options, sign, integer, decimal, exponent, power, uncertainty)
+  let (options, sign, mantissa, exponent, power, uncertainty) = process(
+    options,
+    sign,
+    integer,
+    decimal,
+    exponent,
+    power,
+    uncertainty,
+  )
 
   return build(options, sign, mantissa, exponent, power, uncertainty)
-
 }

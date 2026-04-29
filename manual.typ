@@ -2,20 +2,22 @@
 #import lib: *
 #import units: *
 #import prefixes: *
-
+// #context panic(text.font)
 #let example(it, dir) = {
   set text(size: 1.25em)
   let (a, b) = (
     eval(
-      "#set text(font: \"Linux Libertine\")\n" + it.text, 
+      {
+        "#set text(font: \"libertinus serif\");"
+        it.text
+      },
       mode: "markup",
-      scope: dictionary(units) + dictionary(prefixes) + dictionary(lib)
+      scope: dictionary(units) + dictionary(prefixes) + dictionary(lib),
     ),
-    raw(it.text.replace("\\\n", "\\\n"), lang: "typ")
+    raw(it.text.replace("\\\n", "\\\n"), lang: "typ"),
   )
   block(
     breakable: false,
-    spacing: 0em,
     pad(
       left: 1em,
       stack(
@@ -24,9 +26,9 @@
           (a, 1fr, par(leading: 0.9em, b), 1fr)
         } else {
           (b, linebreak(), a)
-        }
-      )
-    )
+        },
+      ),
+    ),
   )
   metro-reset()
 }
@@ -50,7 +52,7 @@
     nu: "Number",
     li: "Literal",
     sw: "Switch",
-    "in": "Integer"
+    "in": "Integer",
   )
 
 
@@ -62,18 +64,16 @@
     // default = align(top + right, [(default: #raw(default))])
   }
 
-  t = text(types.at(t, default: t), font: "Source Code Pro")
+  t = text(types.at(t, default: t))
   block(breakable: false, {
-    align(horizon, 
-      stack(
-        dir: ltr, 
-        term.map(t => strong(t + "\n")).join(),
-        h(0.6em),
-        t,
-        1fr,
-        default
-      )
-    )
+    align(horizon, stack(
+      dir: ltr,
+      term.map(t => strong(t + "\n")).join(),
+      h(0.6em),
+      t,
+      1fr,
+      default,
+    ))
     block(pad(description, left: 2em), above: 0.65em)
   })
 }
@@ -83,8 +83,8 @@
 
   #link("https://github.com/fenjalien")[fenjalien] and #link("https://github.com/Mc-Zen")[Mc-Zen] \
   https://github.com/fenjalien/metro \
-  Version 0.3.0 \
-  Requires Typst 0.11+
+  Version 0.4.0 \
+  Requires Typst 0.14.2+
 ]
 
 #outline(indent: auto)
@@ -104,11 +104,7 @@ Metro's name comes from Metrology, the study scientific study of measurement.
 
 Typst 0.11.0+ is required. You can import the package using the package manager:
 ```typ
-#import "@preview/metro:0.3.0": *
-```
-Or download the `src` folder and import `lib.typ`:
-```typ
-#import "/src/lib.typ": *
+#import "@preview/metro:0.4.0": *
 ```
 
 // The package provdides the functions:
@@ -147,8 +143,8 @@ All options and function arguments will use the following types:
 ```
 
 Parses, processes then prints a number. The number can be given as an integer, a float, a string, as some plain content or math content! The different forms of input should extend to all other functions with arguments that take a number, they will be parsed all the same. However it should be noted that:
-  - When giving a number as an integer or float with an exponent in the number, it will not be seen by Metro (e.g. `3.4e3` will be seen as `3400` and not "3.4 with an exponent of 3").
-  - When using one of Metro's function within math mode, Typst considers dashes as subtraction symbols which breaks identifier names. So any options with dashes will not be able to be used when in math mode.
+- When giving a number as an integer or float with an exponent in the number, it will not be seen by Metro (e.g. `3.4e3` will be seen as `3400` and not "3.4 with an exponent of 3").
+- When using one of Metro's function within math mode, Typst considers dashes as subtraction symbols which breaks identifier names. So any options with dashes will not be able to be used when in math mode.
 
 ```example
 #num(123)\
@@ -261,7 +257,7 @@ $num(0.123)$\
 #param("exponent-mode", "ch", default: "input")[
   How to convert the number to scientific notation. Note that the calculated exponent will be added to the given exponent for all options.
 
-  / input: Does not perform any conversions, the exponent will be displayed as given. 
+  / input: Does not perform any conversions, the exponent will be displayed as given.
   / scientific: Converts the number such that the integer will always be a single digit.
   / fixed: Convert the number to use the exponent value given by the `fixed-exponent` option.
   / engineering: Converts the number such that the exponent will be a multiple of three.
@@ -630,7 +626,7 @@ When using the function in math mode, Typst accepts single characters but multip
   $unit(joule / mole / kelvin)$
 ]
 
-When using strings there is no need to import any units or prefixes as the string is parsed. Additionally several variables have been defined to allow the string to be more human readable. You can also use the same syntax as with math mode. 
+When using strings there is no need to import any units or prefixes as the string is parsed. Additionally several variables have been defined to allow the string to be more human readable. You can also use the same syntax as with math mode.
 ```example-stack
 // String
 #unit("kilo gram metre per square second")\
@@ -649,7 +645,7 @@ $unit(metre/second)$\
 #unit("/becquerel^2")
 ```
 
-`square` and `cubic` apply their respective powers to the units after them, while `squared` and `cubed` apply to units before them. 
+`square` and `cubic` apply their respective powers to the units after them, while `squared` and `cubed` apply to units before them.
 ```example-stack
 #unit("square becquerel")\
 #unit("joule squared per lumen")\
@@ -689,16 +685,16 @@ Generic qualifiers are available using the `of` function which is equivalent to 
 === Options
 
 #param("inter-unit-product", "li", default: "sym.space.thin", [
-The separator between each unit. The default setting is a thin space: another common choice is a centred dot.
-```example
-#unit("farad squared lumen candela")\
-#unit("farad squared lumen candela", inter-unit-product: $dot.c$)
-```
+  The separator between each unit. The default setting is a thin space: another common choice is a centred dot.
+  ```example
+  #unit("farad squared lumen candela")\
+  #unit("farad squared lumen candela", inter-unit-product: $dot.c$)
+  ```
 ])
 
 
 #param("per-mode", "ch", default: "power", [
-  Use to alter the handling of `per`. 
+  Use to alter the handling of `per`.
 
   / power: Reciprocal powers
   ```example
@@ -771,7 +767,7 @@ The separator between each unit. The default setting is a thin space: another co
 ]
 
 #param("power-half-as-sqrt", "sw", default: "false")[
-  When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root. This 
+  When `true` the power of $0.5$ is shown by giving the unit sumbol as a square root. This
   ```example
   #unit("Hz tothe(0.5)")\
   #unit("Hz tothe(0.5)", power-half-as-sqrt: true)
@@ -901,7 +897,7 @@ The above function names cannot be used in math mode, instead equivalently named
   #num-list(
     list-final-separator: [, ],
     0.1, 0.2, 0.3
-  ) \ 
+  ) \
   #num-list(
     list-separator: [ and ],
     list-final-separator: [ and ],
@@ -914,7 +910,7 @@ The above function names cannot be used in math mode, instead equivalently named
   The to use for exactly two items of a list.
 
   ```example
-  #num-list(0.1, 0.2) \ 
+  #num-list(0.1, 0.2) \
   #num-list(
     list-pair-separator: [, and ],
     0.1, 0.2
@@ -969,7 +965,7 @@ The above function names cannot be used in math mode, instead equivalently named
 ]
 
 #param(("list-exponents", "product-exponents", "range-exponents"), "ch", default: "individual")[
-  Controls how lists, products and ranges can be "compressed" by combining the exponent parts. 
+  Controls how lists, products and ranges can be "compressed" by combining the exponent parts.
 
   / individual: Leaves the exponent with the matching value.
   ```example
@@ -1220,382 +1216,539 @@ Typsets angles. The angle can be given as a single decimal number or 2 to 3 posi
 The following tables show the currently supported prefixes, units and their abbreviations. Note that unit abbreviations that have single letter commands are not available for import for use in math. This is because math mode already accepts single letter variables.
 
 #{
-set figure(kind: "Table", supplement: "Table")
+  set figure(kind: "Table", supplement: "Table")
 
-let generate(..units) = {
-  units.pos().map(x => {
-    let (name, command) = if type(x) == "array" {
-      x
-    } else {
-      (x, x)
-    }
-    (name, raw(command), unit(command))
-  }).join()
-}
-
-let headers = ([Unit], [Command], [Symbol])
-
-figure(
-  table(
-    columns: 3,
-    stroke: none,
-    table.hline(),
-    ..headers,
-    table.hline(),
-    ..generate(
-      "ampere",
-      "candela",
-      "kelvin",
-      "kilogram",
-      "metre",
-      "mole",
-      "second"
-    ),
-    table.hline(),
-  ),
-  caption: [SI base units.]
-)
-
-figure(
-  table(
-    columns: 6,
-    stroke: none,
-    table.hline(),
-    ..headers * 2,
-    table.hline(),
-    ..generate(
-      "becquerel", "newton",
-      ("degree Celsius", "degreeCelsius"), "ohm",
-      "coulomb", "pascal",
-      "farad", "radian",
-      "gray", "siemens",
-      "hertz", "sievert",
-      "henry", "steradian",
-      "joule", "tesla",
-      "lumen", "volt",
-      "katal", "watt",
-      "lux", "weber"
-    ),
-    table.hline()
-  ),
-  caption: [Coherent derived units in the SI with special names and symbols.]
-)
-
-figure(
-  table(
-    columns: 3,
-    stroke: none,
-    table.hline(),
-    ..headers,
-    table.hline(),
-    ..generate(
-      "astronomicalunit",
-      "bel",
-      "dalton",
-      "day",
-      "decibel",
-      "degree",
-      "electronvolt",
-      "hectare",
-      "hour",
-      "litre",
-      ("", "liter"),
-      ("minute (plane angle)", "arcminute"),
-      ("minute (time)", "minute"),
-      ("second (plane angle)", "arcsecond"),
-      "neper",
-      "tonne"
-    ),
-    table.hline(),
-  ),
-  caption: [Non-SI units accepted for use with the International System of Units.]
-)
-
-figure(
-  table(
-    columns: 3,
-    stroke: none,
-    table.hline(),
-    ..headers,
-    table.hline(),
-    ..generate(
-      "byte",
-    ),
-    table.hline(),
-  ),
-  caption: [Non-SI units.]
-)
-
-figure(
-  table(
-    columns: 8,
-    stroke: none,
-    table.hline(),
-    ..([Prefix], [Command], [Symbol], [$10^x$]) * 2,
-    table.hline(),
-    ..((
-      ("quecto", -30), ("deca", 1),
-      ("ronto", -27), ("hecto", 2),
-      ("yocto", -24), ("kilo", 3), 
-      ("atto", -21), ("mega", 6),
-      ("zepto", -18), ("giga", 9),
-      ("femto", -15), ("tera", 12),
-      ("pico", -12), ("peta", 15),
-      ("nano", -9), ("exa", 18),
-      ("micro", -6), ("zetta", 21),
-      ("milli", -3), ("yotta", 24),
-      ("centi", -2), ("ronna", 27),
-      ("deci", -1), ("quetta", 30)
-    ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
-    table.hline(),
-  ),
-  caption: [SI prefixes]
-)
-figure(
-  table(
-    columns: 4,
-    stroke: none,
-    table.hline(),
-    [Prefix], [Command], [Symbol], [$2^x$],
-    table.hline(),
-    ..((
-      ("kibi", 10),
-      ("mebi", 20),
-      ("gibi", 30),
-      ("tebi", 40),
-      ("pebi", 50),
-      ("exbi", 60),
-      ("zebi", 70),
-      ("yobi", 80),
-    ).map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last()))).join()),
-    table.hline(),
-  ),
-  caption: [Binary prefixes]
-)
-
-let ge(..xs) = {
-  let xs = xs.pos()
-  for i in range(0, xs.len()-1, step: 2) {
-    let name = xs.at(i)
-    let abbr = xs.at(i+1)
-    (name, raw(abbr), unit(abbr))
+  let generate(..units) = {
+    units
+      .pos()
+      .map(x => {
+        let (name, command) = if type(x) == array {
+          x
+        } else {
+          (x, x)
+        }
+        (name, raw(command), unit(command))
+      })
+      .join()
   }
-}
 
-page(
-  margin: 1cm,
+  let headers = ([Unit], [Command], [Symbol])
+
   figure(
-    caption: [Unit abbreviations],
-    stack(
-      dir: ltr,
-      table(
-        columns: 3,
-        stroke: none,
-        table.hline(),
-        [Unit], [Abbreviation], [Symbol],
-        table.hline(),
-        ..ge(
-          "femtogram", "fg",
-          "picogram", "pg",
-          "nanogram", "ng",
-          "microgram", "ug",
-          "milligram", "mg",
-          "gram", "g",
-          "kilogram", "kg"
-        ),
-        table.hline(),
-        ..ge(
-          "picometre", "pm",
-          "nanometre", "nm",
-          "micrometre", "um",
-          "millimetre", "mm",
-          "centimetre", "cm",
-          "decimetre", "dm",
-          "metre", "m",
-          "kilometre", "km",
-        ),
-        table.hline(),
-        ..ge(
-          "attosecond", "as",
-          "femtosecond", "fs",
-          "picosecond", "ps",
-          "nanosecond", "ns",
-          "microsecond", "us",
-          "millisecond", "ms",
-          "second", "s",
-        ),
-        table.hline(),
-        ..ge(
-          "femtomole", "fmol",
-          "picomole", "pmol",
-          "nanomole", "nmol",
-          "micromole", "umol",
-          "millimole", "mmol",
-          "mole", "mol",
-          "kilomole", "kmol",
-        ),
-        table.hline(),
-        ..ge(
-          "picoampere", "pA",
-          "nanoampere", "nA",
-          "microampere", "uA",
-          "milliampere", "mA",
-          "ampere", "A",
-          "kiloampere", "kA",
-        ),
-        table.hline(),
-        ..ge(
-          "microlitre", "uL",
-          "millilitre", "mL",
-          "litre", "L",
-          "hectolitre", "hL",
-        )
+    table(
+      columns: 3,
+      stroke: none,
+      table.hline(),
+      ..headers,
+      table.hline(),
+      ..generate(
+        "ampere",
+        "candela",
+        "kelvin",
+        "kilogram",
+        "metre",
+        "mole",
+        "second",
       ),
-      table(
-        columns: 3,
-        stroke: none,
-        table.vline(),
-        table.hline(),
-        [Unit], [Abbreviation], [Symbol],
-        table.hline(),
-        ..ge(
-          "millihertz", "mHz",
-          "hertz", "Hz",
-          "kilohertz", "kHz",
-          "megahertz", "MHz",
-          "gigahertz", "GHz",
-          "terahertz", "THz",
-        ),
-        table.hline(),
-        ..ge(
-          "millinewton", "mN",
-          "newton", "N",
-          "kilonewton", "kN",
-          "meganewton", "MN",
-        ),
-        table.hline(),
-        ..ge(
-          "pascal", "Pa",
-          "kilopascal", "kPa",
-          "megapascal", "MPa",
-          "gigapascal", "GPa",
-        ),
-        table.hline(),
-        ..ge(
-          "milliohm", "mohm",
-          "kilohm", "kohm",
-          "megohm", "Mohm",
-        ),
-        table.hline(),
-        ..ge(
-          "picovolt", "pV",
-          "nanovolt", "nV",
-          "microvolt", "uV",
-          "millivolt", "mV",
-          "volt", "V",
-          "kilovolt", "kV",
-        ),
-        table.hline(),
-        ..ge(
-          "watt", "W",
-          "nanowatt", "nW",
-          "microwatt", "uW",
-          "milliwatt", "mW",
-          "kilowatt", "kW",
-          "megawatt", "MW",
-          "gigawatt", "GW",
-        ),
-        table.hline(),
-        ..ge(
-          "joule", "J",
-          "microjoule", "uJ",
-          "millijoule", "mJ",
-          "kilojoule", "kJ",
-        ),
-        table.hline(),
-        ..ge(
-          "electronvolt", "eV",
-          "millielectronvolt", "meV",
-          "kiloelectronvolt", "keV",
-          "megaelectronvolt", "MeV",
-          "gigaelectronvolt", "GeV",
-          "teraelectronvolt", "TeV",
-        ),
-        table.hline(),
-        ..ge(
-          "kilowatt hour", "kWh"
-        )
-      ),
-      table(
-        columns: 3,
-        stroke: none,
-        table.vline(),
-        table.hline(),
-        [Unit], [Abbreviation], [Symbol],
-        table.hline(),
-        ..ge(
-          "farad", "F",
-          "femtofarad", "fF",
-          "picofarad", "pF",
-          "nanofarad", "nF",
-          "microfarad", "uF",
-          "millifarad", "mF",
-        ),
-        table.hline(),
-        ..ge(
-          "henry", "H",
-          "femtohenry", "fH",
-          "picohenry", "pH",
-          "nanohenry", "nH",
-          "millihenry", "mH",
-          "microhenry", "uH",
-        ),
-        table.hline(),
-        ..ge(
-          "coulomb", "C",
-          "nanocoulomb", "nC",
-          "millicoulomb", "mC",
-          "microcoulomb", "uC",
-        ),
-        table.hline(),
-        ..ge(
-          "kelvin", "K",
-          "decibel", "dB",
-          "astrnomicalunit", "au",
-          "becquerel", "Bq",
-          "candela", "cd",
-          "dalton", "Da",
-          "gray", "Gy",
-          "hectare", "ha",
-          "katal", "kat",
-          "lumen", "lm",
-          "neper", "Np",
-          "radian", "rad",
-          "sievert", "Sv",
-          "steradian", "sr",
-          "weber", "Wb"
-        ),
-        table.hline(),
-        ..ge(
-          "kilobyte", "kB",
-          "megabyte", "MB",
-          "gigabyte", "GB",
-          "terabyte", "TB",
-          "petabyte", "PB",
-          "exabyte", "EB",
-          "kibibyte", "KiB",
-          "mebibyte", "MiB",
-          "gibibyte", "GiB",
-          "tebibyte", "TiB",
-          "pebibyte", "PiB",
-          "exbibyte", "EiB",
-        ),
-      )
-    )
+      table.hline(),
+    ),
+    caption: [SI base units.],
   )
-)
+
+  figure(
+    table(
+      columns: 6,
+      stroke: none,
+      table.hline(),
+      ..headers * 2,
+      table.hline(),
+      ..generate(
+        "becquerel",
+        "newton",
+        ("degree Celsius", "degreeCelsius"),
+        "ohm",
+        "coulomb",
+        "pascal",
+        "farad",
+        "radian",
+        "gray",
+        "siemens",
+        "hertz",
+        "sievert",
+        "henry",
+        "steradian",
+        "joule",
+        "tesla",
+        "lumen",
+        "volt",
+        "katal",
+        "watt",
+        "lux",
+        "weber",
+      ),
+      table.hline(),
+    ),
+    caption: [Coherent derived units in the SI with special names and symbols.],
+  )
+
+  figure(
+    table(
+      columns: 3,
+      stroke: none,
+      table.hline(),
+      ..headers,
+      table.hline(),
+      ..generate(
+        "astronomicalunit",
+        "bel",
+        "dalton",
+        "day",
+        "decibel",
+        "degree",
+        "electronvolt",
+        "hectare",
+        "hour",
+        "litre",
+        ("", "liter"),
+        ("minute (plane angle)", "arcminute"),
+        ("minute (time)", "minute"),
+        ("second (plane angle)", "arcsecond"),
+        "neper",
+        "tonne",
+      ),
+      table.hline(),
+    ),
+    caption: [Non-SI units accepted for use with the International System of Units.],
+  )
+
+  figure(
+    table(
+      columns: 3,
+      stroke: none,
+      table.hline(),
+      ..headers,
+      table.hline(),
+      ..generate(
+        "byte",
+      ),
+      table.hline(),
+    ),
+    caption: [Non-SI units.],
+  )
+
+  figure(
+    table(
+      columns: 8,
+      stroke: none,
+      table.hline(),
+      ..([Prefix], [Command], [Symbol], [$10^x$]) * 2,
+      table.hline(),
+      ..(
+        (
+          ("quecto", -30),
+          ("deca", 1),
+          ("ronto", -27),
+          ("hecto", 2),
+          ("yocto", -24),
+          ("kilo", 3),
+          ("atto", -21),
+          ("mega", 6),
+          ("zepto", -18),
+          ("giga", 9),
+          ("femto", -15),
+          ("tera", 12),
+          ("pico", -12),
+          ("peta", 15),
+          ("nano", -9),
+          ("exa", 18),
+          ("micro", -6),
+          ("zetta", 21),
+          ("milli", -3),
+          ("yotta", 24),
+          ("centi", -2),
+          ("ronna", 27),
+          ("deci", -1),
+          ("quetta", 30),
+        )
+          .map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last())))
+          .join()
+      ),
+      table.hline(),
+    ),
+    caption: [SI prefixes],
+  )
+  figure(
+    table(
+      columns: 4,
+      stroke: none,
+      table.hline(),
+      [Prefix], [Command], [Symbol], [$2^x$],
+      table.hline(),
+      ..(
+        (
+          ("kibi", 10),
+          ("mebi", 20),
+          ("gibi", 30),
+          ("tebi", 40),
+          ("pebi", 50),
+          ("exbi", 60),
+          ("zebi", 70),
+          ("yobi", 80),
+        )
+          .map(x => (x.first(), raw(x.first()), unit(x.first()), num(x.last())))
+          .join()
+      ),
+      table.hline(),
+    ),
+    caption: [Binary prefixes],
+  )
+
+  let ge(..xs) = {
+    let xs = xs.pos()
+    for i in range(0, xs.len() - 1, step: 2) {
+      let name = xs.at(i)
+      let abbr = xs.at(i + 1)
+      (name, raw(abbr), unit(abbr))
+    }
+  }
+
+  page(
+    margin: 1cm,
+    figure(
+      caption: [Unit abbreviations],
+      stack(
+        dir: ltr,
+        table(
+          columns: 3,
+          stroke: none,
+          table.hline(),
+          [Unit], [Abbreviation], [Symbol],
+          table.hline(),
+          ..ge(
+            "femtogram",
+            "fg",
+            "picogram",
+            "pg",
+            "nanogram",
+            "ng",
+            "microgram",
+            "ug",
+            "milligram",
+            "mg",
+            "gram",
+            "g",
+            "kilogram",
+            "kg",
+          ),
+          table.hline(),
+          ..ge(
+            "picometre",
+            "pm",
+            "nanometre",
+            "nm",
+            "micrometre",
+            "um",
+            "millimetre",
+            "mm",
+            "centimetre",
+            "cm",
+            "decimetre",
+            "dm",
+            "metre",
+            "m",
+            "kilometre",
+            "km",
+          ),
+          table.hline(),
+          ..ge(
+            "attosecond",
+            "as",
+            "femtosecond",
+            "fs",
+            "picosecond",
+            "ps",
+            "nanosecond",
+            "ns",
+            "microsecond",
+            "us",
+            "millisecond",
+            "ms",
+            "second",
+            "s",
+          ),
+          table.hline(),
+          ..ge(
+            "femtomole",
+            "fmol",
+            "picomole",
+            "pmol",
+            "nanomole",
+            "nmol",
+            "micromole",
+            "umol",
+            "millimole",
+            "mmol",
+            "mole",
+            "mol",
+            "kilomole",
+            "kmol",
+          ),
+          table.hline(),
+          ..ge(
+            "picoampere",
+            "pA",
+            "nanoampere",
+            "nA",
+            "microampere",
+            "uA",
+            "milliampere",
+            "mA",
+            "ampere",
+            "A",
+            "kiloampere",
+            "kA",
+          ),
+          table.hline(),
+          ..ge(
+            "microlitre",
+            "uL",
+            "millilitre",
+            "mL",
+            "litre",
+            "L",
+            "hectolitre",
+            "hL",
+          ),
+        ),
+        table(
+          columns: 3,
+          stroke: none,
+          table.vline(),
+          table.hline(),
+          [Unit], [Abbreviation], [Symbol],
+          table.hline(),
+          ..ge(
+            "millihertz",
+            "mHz",
+            "hertz",
+            "Hz",
+            "kilohertz",
+            "kHz",
+            "megahertz",
+            "MHz",
+            "gigahertz",
+            "GHz",
+            "terahertz",
+            "THz",
+          ),
+          table.hline(),
+          ..ge(
+            "millinewton",
+            "mN",
+            "newton",
+            "N",
+            "kilonewton",
+            "kN",
+            "meganewton",
+            "MN",
+          ),
+          table.hline(),
+          ..ge(
+            "pascal",
+            "Pa",
+            "kilopascal",
+            "kPa",
+            "megapascal",
+            "MPa",
+            "gigapascal",
+            "GPa",
+          ),
+          table.hline(),
+          ..ge(
+            "milliohm",
+            "mohm",
+            "kilohm",
+            "kohm",
+            "megohm",
+            "Mohm",
+          ),
+          table.hline(),
+          ..ge(
+            "picovolt",
+            "pV",
+            "nanovolt",
+            "nV",
+            "microvolt",
+            "uV",
+            "millivolt",
+            "mV",
+            "volt",
+            "V",
+            "kilovolt",
+            "kV",
+          ),
+          table.hline(),
+          ..ge(
+            "watt",
+            "W",
+            "nanowatt",
+            "nW",
+            "microwatt",
+            "uW",
+            "milliwatt",
+            "mW",
+            "kilowatt",
+            "kW",
+            "megawatt",
+            "MW",
+            "gigawatt",
+            "GW",
+          ),
+          table.hline(),
+          ..ge(
+            "joule",
+            "J",
+            "microjoule",
+            "uJ",
+            "millijoule",
+            "mJ",
+            "kilojoule",
+            "kJ",
+          ),
+          table.hline(),
+          ..ge(
+            "electronvolt",
+            "eV",
+            "millielectronvolt",
+            "meV",
+            "kiloelectronvolt",
+            "keV",
+            "megaelectronvolt",
+            "MeV",
+            "gigaelectronvolt",
+            "GeV",
+            "teraelectronvolt",
+            "TeV",
+          ),
+          table.hline(),
+          ..ge(
+            "kilowatt hour",
+            "kWh",
+          ),
+        ),
+        table(
+          columns: 3,
+          stroke: none,
+          table.vline(),
+          table.hline(),
+          [Unit], [Abbreviation], [Symbol],
+          table.hline(),
+          ..ge(
+            "farad",
+            "F",
+            "femtofarad",
+            "fF",
+            "picofarad",
+            "pF",
+            "nanofarad",
+            "nF",
+            "microfarad",
+            "uF",
+            "millifarad",
+            "mF",
+          ),
+          table.hline(),
+          ..ge(
+            "henry",
+            "H",
+            "femtohenry",
+            "fH",
+            "picohenry",
+            "pH",
+            "nanohenry",
+            "nH",
+            "millihenry",
+            "mH",
+            "microhenry",
+            "uH",
+          ),
+          table.hline(),
+          ..ge(
+            "coulomb",
+            "C",
+            "nanocoulomb",
+            "nC",
+            "millicoulomb",
+            "mC",
+            "microcoulomb",
+            "uC",
+          ),
+          table.hline(),
+          ..ge(
+            "kelvin",
+            "K",
+            "decibel",
+            "dB",
+            "astrnomicalunit",
+            "au",
+            "becquerel",
+            "Bq",
+            "candela",
+            "cd",
+            "dalton",
+            "Da",
+            "gray",
+            "Gy",
+            "hectare",
+            "ha",
+            "katal",
+            "kat",
+            "lumen",
+            "lm",
+            "neper",
+            "Np",
+            "radian",
+            "rad",
+            "sievert",
+            "Sv",
+            "steradian",
+            "sr",
+            "weber",
+            "Wb",
+          ),
+          table.hline(),
+          ..ge(
+            "kilobyte",
+            "kB",
+            "megabyte",
+            "MB",
+            "gigabyte",
+            "GB",
+            "terabyte",
+            "TB",
+            "petabyte",
+            "PB",
+            "exabyte",
+            "EB",
+            "kibibyte",
+            "KiB",
+            "mebibyte",
+            "MiB",
+            "gibibyte",
+            "GiB",
+            "tebibyte",
+            "TiB",
+            "pebibyte",
+            "PiB",
+            "exbibyte",
+            "EiB",
+          ),
+        ),
+      ),
+    ),
+  )
 }
-= Creating 
+= Creating
 
 The following functions can be used to define custom units, prefixes, powers and qualifiers that can be used with the `unit` function.
 
@@ -1607,7 +1760,10 @@ The following functions can be used to define custom units, prefixes, powers and
 Declare's a custom unit to be used with the `unit` and `qty` functions.
 
 #param("unit", "string")[The string to use to identify the unit for string input.]
-#param("symbol", "li")[The unit's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
+#param(
+  "symbol",
+  "li",
+)[The unit's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
 
 ```example-stack
 #let inch = "in"
@@ -1622,7 +1778,10 @@ Declare's a custom unit to be used with the `unit` and `qty` functions.
 ```
 Use this function to correctly create the symbol for a prefix. Metro uses Typst's #link("https://typst.app/docs/reference/math/class/", `math.class`) function with the `class` parameter `"unary"` to designate a prefix. This function does it for you.
 
-#param("symbol", "li")[The prefix's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
+#param(
+  "symbol",
+  "li",
+)[The prefix's symbol. A string or math content can be used. When using math content it is recommended to pass it through `unit` first.]
 
 ```typ
 #declare-prefix(prefix, symbol, power-tens)
@@ -1646,7 +1805,7 @@ Declare's a custom prefix to be used with the `unit` and `qty` functions.
 #declare-power(before, after, power)
 ```
 
-This function adds two symbols for string input, one for use before a unit, the second for use after a unit, both of which are equivalent to the `power`. 
+This function adds two symbols for string input, one for use before a unit, the second for use after a unit, both of which are equivalent to the `power`.
 
 #param("before", "string")[The string that specifies this power before a unit.]
 #param("after", "string")[The string that specifies this power after a unit.]
